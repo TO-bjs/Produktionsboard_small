@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Screenshot hochladen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .upload-box {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    .upload-box h2 {
+      margin-top: 0;
+    }
+    input[type="file"],
+    input[type="password"] {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0078D4;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="upload-box">
+    <h2>Screenshot hochladen</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="password" name="password" placeholder="Passwort" required>
+      <input type="file" name="screenshot" accept="image/*" required>
+      <button type="submit">Hochladen</button>
+    </form>
+    {% if success %}
+      <p class="message success">✔️ Upload erfolgreich!</p>
+    {% elif error %}
+      <p class="message error">❌ Falsches Passwort!</p>
+    {% endif %}
+  </div>
+</body>
+</html>
