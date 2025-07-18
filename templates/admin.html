@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-5">
+  <div class="card">
+    <div class="card-body">
+      <h2 class="mb-4">Benutzerverwaltung</h2>
+
+      <form method="post">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label>Benutzername</label>
+            <input type="text" class="form-control" name="new_username">
+          </div>
+          <div class="col-md-3">
+            <label>E-Mail</label>
+            <input type="email" class="form-control" name="new_email">
+          </div>
+          <div class="col-md-2">
+            <label>Passwort</label>
+            <input type="password" class="form-control" name="new_password">
+          </div>
+          <div class="col-md-2">
+            <label>Rolle</label>
+            <select class="form-select" name="new_admin">
+              <option value="0">User</option>
+              <option value="1">Admin</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-grid align-items-end">
+            <button type="submit" class="btn btn-success">➕</button>
+          </div>
+        </div>
+      </form>
+
+
+      <hr>
+
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Benutzername</th>
+            <th>E-Mail</th>
+            <th>Admin</th>
+            <th>Neues Passwort</th>
+            <th>Aktion</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.username }}</td>
+            <td><input type="email" class="form-control" name="email" value="{{ user.email }}"></td>
+            <td>
+              <select class="form-select" name="is_admin">
+                <option value="1" {% if user.is_admin %}selected{% endif %}>Ja</option>
+                <option value="0" {% if not user.is_admin %}selected{% endif %}>Nein</option>
+              </select>
+            </td>
+            <td><input type="password" class="form-control" placeholder="Neues Passwort" name="new_password"></td>
+            <td>
+              <button class="btn btn-sm btn-primary">💾 Speichern</button>
+              <button class="btn btn-sm btn-danger">🗑 Löschen</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="d-flex justify-content-start">
+      <a href="{{ url_for('landing') }}" class="btn btn-secondary">⬅ Zurück</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+  <h2 class="mb-4 text-center">🔑 Login</h2>
+
+  {% if error %}
+    <div class="alert alert-danger text-center">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <input type="hidden" name="next" value="{{ next or '/' }}">
+
+    <div class="mb-3">
+      <label for="username" class="form-label">Benutzername</label>
+      <input type="text" class="form-control" name="username" id="username" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Passwort</label>
+      <input type="password" class="form-control" name="password" id="password" required>
+    </div>
+
+    <div class="d-grid mb-2">
+      <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+
+    <div class="text-center mb-3">
+      <a href="/reset" class="link-secondary">🔁 Passwort vergessen?</a>
+    </div>
+  </form>
+
+  <div class="text-start mt-4">
+    <a href="{{ url_for('landing') }}" class="btn btn-secondary">⬅️ Zurück</a>
+  </div>
+</div>
+{% endblock %}

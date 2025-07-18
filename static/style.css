@@ -1,0 +1,56 @@
+/* static/style.css */
+
+.navbar-custom {
+  background-color: #003366;
+  color: white;
+}
+
+.navbar-custom a {
+  color: white;
+  text-decoration: none;
+}
+
+.navbar-custom a:hover {
+  color: #cccccc;
+}
+
+.navbar-logo {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.button-primary {
+  background-color: #0055a5;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button-primary:hover {
+  background-color: #003f7f;
+}
+
+.btn-logout {
+  background-color: #c62828; /* dunkles Rot */
+  color: white;
+  border: none;
+}
+
+.btn-logout:hover {
+  background-color: #8e0000;
+  color: white;
+}
+
+.btn-login {
+    background-color: #90be0f; /* Blau */
+    color: white;
+    border: none;
+}
+
+.btn-login:hover {
+    background-color: #007f00; /* Dunkleres Blau */
+    color: white;
+}

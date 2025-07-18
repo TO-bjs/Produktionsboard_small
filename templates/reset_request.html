@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Passwort vergessen{% endblock %}
+
+{% block content %}
+
+<nav class="navbar custom-navbar px-3">
+<div class="d-flex align-items-center">
+<img alt="Logo" class="me-2" height="40" src="/static/logo.png"/>
+<span class="navbar-brand mb-0 h1 text-white">Passwort zurücksetzen</span>
+</div>
+</nav>
+<body>
+<h2>🔐 Passwort zurücksetzen</h2>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-info mt-3">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  <input type="email" name="email" required>
+  <button type="submit" class="btn btn-primary">🔑 Link anfordern</button>
+</form>
+
+
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+  <a href="/login">Zurück zum Login</a>
+</body>
+
+{% endblock %}

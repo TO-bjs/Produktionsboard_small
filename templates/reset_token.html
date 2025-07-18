@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Neues Passwort{% endblock %}
+
+{% block content %}
+
+<nav class="navbar custom-navbar px-3">
+<div class="d-flex align-items-center">
+<img alt="Logo" class="me-2" height="40" src="/static/logo.png"/>
+<span class="navbar-brand mb-0 h1 text-white">Neues Passwort</span>
+</div>
+</nav>
+<body>
+<h2>Neues Passwort festlegen</h2>
+<form method="post">
+<label>Neues Passwort:</label><br/>
+<input name="new_password" required="" type="password"/><br/><br/>
+<input type="submit" value="Passwort speichern"/>
+</form>
+</body>
+
+{% endblock %}
