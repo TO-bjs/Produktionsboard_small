@@ -5,6 +5,10 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 PASSWORD = 'produktion123'
 
+@app.route("/")
+def index():
+    return redirect("/landing")
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -18,6 +22,11 @@ def upload():
             file.save(filepath)
             return redirect('/upload?success=1')
     return render_template('upload.html', success=request.args.get('success'), error=request.args.get('error'))
+
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
+
 
 @app.route('/anzeige')
 def anzeigen():
