@@ -124,7 +124,7 @@ def reset_request():
             print("Reset-Anfrage empfangen für E-Mail:", email)
 
             # Sende E-Mail
-            reset_link = f"http://192.168.1.234:5000/reset/{token}"  # <== Anpassen an Domain
+            reset_link = f"http://produktion.to-labsystems.de/reset/{token}"  # <== Anpassen an Domain
             subject = "Passwort zurücksetzen"
             body = f"""Klicke auf den folgenden Link, um dein Passwort zurückzusetzen:
 {reset_link}
@@ -136,31 +136,68 @@ Der Link ist 10 Minuten gültig."""
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_token(token):
-    conn = get_db_connection()
-    conn.execute("DELETE FROM reset_tokens WHERE expires_at < ?", (datetime.now(),))
-    token_entry = conn.execute("SELECT * FROM reset_tokens WHERE token = ?", (token,)).fetchone()
+    with get_db_connection() as conn:
+        # Abgelaufene Tokens löschen
+        conn.execute("DELETE FROM reset_tokens WHERE expires_at < ?", (datetime.now(),))
+        token_entry = conn.execute("SELECT * FROM reset_tokens WHERE token = ?", (token,)).fetchone()
+
     if not token_entry:
         flash('Token ist ungültig oder abgelaufen.')
         return redirect(url_for('reset_request'))
+
     if request.method == 'POST':
-        password = generate_password_hash(request.form['password'])
-        conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password, token_entry['user_id']))
-        conn.execute("DELETE FROM reset_tokens WHERE user_id = ?", (token_entry['user_id'],))
-        conn.commit()
+        new_password = request.form.get('new_password')
+        if not new_password:
+            flash("Neues Passwort darf nicht leer sein.")
+            return redirect(request.url)
+
+        password_hash = generate_password_hash(new_password)
+
+        print("🔁 Passwort-Reset-Versuch:")
+        print("➡️ Neue Hash:", password_hash)
+        print("➡️ Benutzer-ID:", token_entry['user_id'])
+
+        with get_db_connection() as conn:
+            result = conn.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?",
+                (password_hash, token_entry['user_id'])
+            )
+            conn.execute(
+                "DELETE FROM reset_tokens WHERE user_id = ?",
+                (token_entry['user_id'],)
+            )
+            conn.commit()
+
+            print("✅ Passwort geändert:", result.rowcount, "Zeile(n) aktualisiert.")
+
         flash('Passwort erfolgreich geändert.')
         return redirect(url_for('login'))
+
     return render_template('reset_token.html')
 
+
 def send_email(subject, body, to_email):
-    msg = EmailMessage()
-    msg['Subject'] = subject
-    msg['From'] = "support@to-labsystems.de"  # Platzhalter
-    msg['To'] = to_email
-    msg.set_content(body)
-    with smtplib.SMTP('smtp.office365.com', 587) as smtp:
-        smtp.starttls()
-        smtp.login('bjs@to-labsystems.de', 'Kloakering2025!')  # Platzhalter
-        smtp.send_message(msg)
+    import smtplib
+    from email.message import EmailMessage
+    import traceback
+
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = "it@to-labsystems.de"  # z. B. info@deine-domain.de
+        msg['To'] = to_email
+        msg.set_content(body)
+
+        # Port 465 = SSL
+        with smtplib.SMTP_SSL('smtp.strato.de', 465, timeout=10) as smtp:
+            smtp.login('it@to-labsystems.de', 'Labsys-InfoTech25/')
+            smtp.send_message(msg)
+
+        print("✅ E-Mail erfolgreich gesendet an", to_email)
+
+    except Exception as e:
+        print("❌ Fehler beim Senden der E-Mail:")
+        traceback.print_exc()
         
 @app.route('/update_user', methods=['POST'])
 def update_user():
