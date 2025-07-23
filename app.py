@@ -3,7 +3,7 @@ import sqlite3
 import secrets
 import smtplib
 from datetime import datetime, timedelta, timezone
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from email.message import EmailMessage
 
@@ -44,7 +44,15 @@ def get_db_connection():
 @app.route('/')
 @app.route("/landing")
 def landing():
-    return render_template("landing.html")
+    conn = get_db_connection()
+    today = datetime.today().date()
+    announcements = conn.execute('''
+        SELECT * FROM announcements
+        WHERE expires_at IS NULL OR date(expires_at) >= ?
+        ORDER BY created_at DESC
+    ''', (today,)).fetchall()
+    conn.close()
+    return render_template("landing.html", announcements=announcements)
 
 @app.route('/anzeige')
 def anzeigen():
@@ -77,6 +85,7 @@ def login():
         if user and check_password_hash(user['password_hash'], password):
             session['user_id'] = user['id']
             session['is_admin'] = user['is_admin']
+            session['username'] = user['username']
             return redirect(url_for('landing'))
         flash('Login fehlgeschlagen.')
     return render_template('login.html')
@@ -86,8 +95,8 @@ def logout():
     session.clear()
     return redirect(url_for('landing'))
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
+@app.route('/admin/users', methods=['GET', 'POST'])
+def admin_users():
     if not session.get('is_admin'):
         return redirect(url_for('login'))
     conn = get_db_connection()
@@ -95,7 +104,6 @@ def admin():
         if 'delete' in request.form:
             user_id = request.form['delete']
             conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
-            conn.commit()
         else:
             username = request.form['new_username']
             password = generate_password_hash(request.form['new_password'])
@@ -103,9 +111,10 @@ def admin():
             is_admin = 1 if 'new_admin' in request.form else 0
             conn.execute('INSERT INTO users (username, password_hash, email, is_admin) VALUES (?, ?, ?, ?)',
                          (username, password, email, is_admin))
-            conn.commit()
+        conn.commit()
     users = conn.execute('SELECT * FROM users').fetchall()
-    return render_template('admin.html', users=users)
+    conn.close()
+    return render_template('admin_users.html', users=users)
 
 @app.route('/reset', methods=['GET', 'POST'])
 def reset_request():
@@ -220,6 +229,57 @@ def update_user():
     conn.close()
     flash("Benutzer erfolgreich aktualisiert.")
     return redirect(url_for('admin'))
+
+@app.route('/admin/ankuendigung', methods=['GET', 'POST'])
+def manage_announcements():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form.get('content', '')
+        source = request.form['source']
+        expires_at = request.form.get('expires_at') or None
+        file = request.files.get('attachment')
+        attachment_path = None
+
+        if file and file.filename:
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(save_path)
+            attachment_path = file.filename
+
+        conn.execute('''
+            INSERT INTO announcements (title, content, source, attachment_path, expires_at, created_by)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (title, content, source, attachment_path, expires_at, session.get('user_id')))
+        conn.commit()
+
+    if 'delete_id' in request.args:
+        conn.execute('DELETE FROM announcements WHERE id = ?', (request.args['delete_id'],))
+        conn.commit()
+        return redirect(url_for('manage_announcements'))
+
+    announcements = conn.execute('SELECT * FROM announcements ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return render_template('manage_announcements.html', announcements=announcements)
+
+@app.route('/api/announcements')
+def api_announcements():
+    conn = get_db_connection()
+    today = datetime.today().date()
+    rows = conn.execute('''
+        SELECT id, title, content, source, attachment_path
+        FROM announcements
+        WHERE expires_at IS NULL OR date(expires_at) >= ?
+        ORDER BY created_at DESC
+    ''', (today,)).fetchall()
+    conn.close()
+
+    announcements = [dict(row) for row in rows]
+    return jsonify(announcements)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

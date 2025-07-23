@@ -3,13 +3,108 @@
 {% block title %}Produktionsboard Startseite{% endblock %}
 
 {% block content %}
+
+<!-- 🔽 Hintergrund-Video (hinter dem gesamten Inhalt) -->
+<!-- 🔄 Hintergrundvideo mit JavaScript-Wechsel -->
+<video id="background-video" autoplay muted loop playsinline class="position-fixed w-100 h-100 object-fit-cover" style="z-index:-1; top: 0; left: 0;">
+</video>
+
+
 <div class="container text-center mt-5">
-  <h2 class="mb-4">Willkommen</h2>
-  
-  <div class="d-grid gap-3 col-6 mx-auto">
-    <a href="/anzeige" class="btn btn-primary btn-lg">🔍 Anzeige ansehen</a>
-    <a href="/upload" class="btn btn-primary btn-lg">⬆️ Uploadbereich</a>
-    <a href="/admin" class="btn btn-primary btn-lg">⚙️ Adminbereich</a>
+  <h1 class="mb-4 display-4">Willkommen beim Digitalen Produktionsboard</h1>
+
+  <!-- Slideshow -->
+  <div id="announcement-container" class="container mt-4 d-flex justify-content-center">
+    <div id="announcement-card" class="card p-4 shadow"
+        style="width: 100%; max-width: 700px; min-height: 300px;">
+    <div id="announcement-content-wrapper" class="transition-slide d-flex flex-column align-items-center text-center">
+      <h5 class="card-title fw-bold text-primary" id="announcement-title"></h5>
+      <p class="card-text" id="announcement-content"></p>
+      <p class="card-subtitle text-muted" id="announcement-source"></p>
+      <div id="announcement-image" class="mt-3"></div>
+    </div>
   </div>
 </div>
+
+<script>
+  let announcements = [];
+  let index = 0;
+
+  const wrapper = document.getElementById("announcement-content-wrapper");
+  const imgContainer = document.getElementById('announcement-image');
+
+  async function fetchAnnouncements() {
+    try {
+      const res = await fetch('/api/announcements');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Nur aktualisieren, wenn sich etwas geändert hat
+      if (JSON.stringify(data) !== JSON.stringify(announcements)) {
+        announcements = data;
+        index = 0;
+        showNext(true);  // sofort anzeigen
+      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Ankündigungen:", err);
+    }
+  }
+
+  function showNext(initial = false) {
+    if (announcements.length === 0) return;
+
+    wrapper.classList.remove("slide-in");
+    if (!initial) wrapper.classList.add("slide-out");
+
+    setTimeout(() => {
+      const a = announcements[index];
+
+      document.getElementById('announcement-title').textContent = a.title;
+      document.getElementById('announcement-content').textContent = a.content;
+      document.getElementById('announcement-source').textContent = "Quelle: " + a.source;
+
+      if (a.attachment_path) {
+        imgContainer.innerHTML = `<img src="/uploads/${a.attachment_path}" class="img-fluid rounded shadow-sm" style="max-height: 200px;">`;
+      } else {
+        imgContainer.innerHTML = '';
+      }
+
+      wrapper.classList.remove("slide-out");
+      void wrapper.offsetWidth;
+      wrapper.classList.add("slide-in");
+
+      index = (index + 1) % announcements.length;
+    }, initial ? 0 : 500);
+  }
+
+  // Start
+  fetchAnnouncements();
+  setInterval(fetchAnnouncements, 10000); // neue Ankündigungen alle 10 Sek
+  setInterval(() => showNext(false), 5000); // Slide alle 5 Sek
+</script>
+
+
+<script>
+  const videoPaths = [
+    "/static/video1.mp4",
+    "/static/video2.mp4",
+    "/static/video3.mp4"
+  ];
+
+  let vIndex = 0;
+  const videoEl = document.getElementById("background-video");
+
+  // Initiales Video setzen
+  videoEl.src = videoPaths[vIndex];
+  videoEl.play();
+
+  setInterval(() => {
+    vIndex = (vIndex + 1) % videoPaths.length;
+    videoEl.pause();
+    videoEl.src = videoPaths[vIndex];
+    videoEl.load();
+    videoEl.play();
+  }, 15000); // alle 15 Sekunden
+</script>
+
 {% endblock %}

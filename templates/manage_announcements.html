@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Ankündigungen verwalten{% endblock %}
+
+{% block content %}
+<h2>📰 Ankündigungen verwalten</h2>
+
+<form method="POST" enctype="multipart/form-data" class="mb-4">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <input type="text" name="title" class="form-control" placeholder="Titel" required>
+    </div>
+    <div class="col-md-4">
+      <input type="text" name="content" class="form-control" placeholder="Text / Inhalt">
+    </div>
+    <div class="col-md-2">
+      <select name="source" class="form-select">
+        <option value="intern">Intern</option>
+        <option value="teams">Teams</option>
+        <option value="protokoll">Protokoll</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="expires_at" class="form-control" placeholder="Ablaufdatum">
+    </div>
+  </div>
+  <div class="row g-2 mt-2">
+    <div class="col-md-6">
+      <input type="file" name="attachment" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-success w-100">➕ Hinzufügen</button>
+    </div>
+  </div>
+</form>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Titel</th>
+      <th>Quelle</th>
+      <th>Ablaufdatum</th>
+      <th>Anhang</th>
+      <th>Aktion</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in announcements %}
+    <tr>
+      <td>{{ a.title }}</td>
+      <td>{{ a.source }}</td>
+      <td>{{ a.expires_at or "∞" }}</td>
+      <td>
+        {% if a.attachment_path %}
+        <a href="{{ url_for('uploaded_file', filename=a.attachment_path) }}" target="_blank">📎</a>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('manage_announcements', delete_id=a.id) }}" class="btn btn-danger btn-sm">🗑️ Löschen</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{{ url_for('landing') }}" class="btn btn-secondary mt-3">⬅ Zurück</a>
+{% endblock %}
