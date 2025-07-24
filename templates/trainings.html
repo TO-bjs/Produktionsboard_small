@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Schulungskalender{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">📅 Schulungen</h2>
+
+  <h4>🔔 In den nächsten 30 Tagen:</h4>
+    <ul class="list-group mb-4" id="upcoming-list">
+    <li class="list-group-item">Lade Daten...</li>
+    </ul>
+
+  <h4 class="mt-5 mb-3">🗓 Kalenderansicht</h4>
+  <div id="calendar" class="border rounded shadow-sm p-3 bg-white"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<!-- FullCalendar Core + Plugins -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'de',
+        height: 550,
+        events: '/api/trainings'
+});
+
+
+    calendar.render();
+
+        // 🔁 Alle 30 Sekunden neu laden
+    setInterval(() => {
+      calendar.refetchEvents();
+    }, 30000);
+
+        // 🔁 Reload für "In den nächsten 30 Tagen"-Liste
+    function reloadUpcomingList() {
+      fetch('/api/trainings/upcoming')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('upcoming-list').innerHTML = html;
+        });
+    }
+
+    // Initialer Aufruf & alle 30 Sekunden wiederholen
+    reloadUpcomingList();
+    setInterval(reloadUpcomingList, 30000);
+  });
+</script>
+<script>
+  // Nur umleiten, wenn "?slideshow=1" in der URL ist
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("slideshow") === "1") {
+    const nextPages = {
+      "/landing": "/anzeige?slideshow=1",
+      "/anzeige": "/schulungen?slideshow=1",
+      "/schulungen": "/landing?slideshow=1"
+    };
+
+    const path = window.location.pathname;
+    const next = nextPages[path];
+
+    if (next) {
+      setTimeout(() => {
+        window.location.href = next;
+      }, 60000);
+    }
+  }
+</script>
+
+
+{% endblock %}
+

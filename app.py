@@ -34,6 +34,13 @@ def init_db():
                             token TEXT NOT NULL,
                             expires_at DATETIME NOT NULL,
                             FOREIGN KEY(user_id) REFERENCES users(id))''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS trainings (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            title TEXT NOT NULL,
+                            date TEXT NOT NULL,
+                            time TEXT,
+                            participants TEXT,
+                            status TEXT DEFAULT 'geplant')''')
 init_db()
 
 def get_db_connection():
@@ -279,6 +286,93 @@ def api_announcements():
 
     announcements = [dict(row) for row in rows]
     return jsonify(announcements)
+
+@app.route('/schulungen')
+def schulungen():
+    conn = get_db_connection()
+    all_trainings = conn.execute('SELECT * FROM trainings ORDER BY date ASC').fetchall()
+
+    # Nur Schulungen in den nächsten 30 Tagen
+    today = datetime.today().date()
+    in_30_days = (today + timedelta(days=30)).isoformat()
+    upcoming = conn.execute('''
+        SELECT * FROM trainings
+        WHERE date BETWEEN ? AND ?
+        ORDER BY date ASC
+    ''', (today.isoformat(), in_30_days)).fetchall()
+
+    conn.close()
+    return render_template('trainings.html', trainings=all_trainings, upcoming=upcoming)
+
+
+@app.route('/api/trainings')
+def api_trainings():
+    conn = get_db_connection()
+    rows = conn.execute('SELECT * FROM trainings ORDER BY date ASC, time ASC').fetchall()
+    conn.close()
+
+    events = []
+    for row in rows:
+        title = row['title']
+        if row['time']:
+            title += f" ({row['time']})"
+
+        events.append({
+            "title": title,
+            "start": row['date'],  # Muss ISO-Format sein: "YYYY-MM-DD"
+            "allDay": True
+        })
+
+    return jsonify(events)
+
+
+@app.route('/admin/trainings', methods=['GET', 'POST'])
+def admin_trainings():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        title = request.form['title']
+        date = request.form['date']
+        time = request.form.get('time')
+        participants = request.form.get('participants')
+
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO trainings (title, date, time, participants)
+            VALUES (?, ?, ?, ?)
+        ''', (title, date, time, participants))
+        conn.commit()
+        conn.close()
+
+        flash("Schulung erfolgreich hinzugefügt.")
+        return redirect(url_for('admin_trainings'))
+
+    return render_template('admin_trainings.html')
+
+@app.route('/api/trainings/upcoming')
+def api_upcoming_trainings():
+    conn = get_db_connection()
+    rows = conn.execute(
+        'SELECT * FROM trainings WHERE date BETWEEN DATE("now") AND DATE("now", "+30 day") ORDER BY date ASC, time ASC'
+    ).fetchall()
+    conn.close()
+
+    html = ""
+    for t in rows:
+        title = t['title']
+        date = t['date']
+        time = t['time']
+        display = f"<strong>{date}</strong> – {title}"
+        if time:
+            display += f", {time}"
+        html += f"<li class='list-group-item'>{display}</li>"
+
+    return html
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template("dashboard.html")
 
 
 if __name__ == '__main__':

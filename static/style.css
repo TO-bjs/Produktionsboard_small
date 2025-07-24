@@ -166,3 +166,16 @@
   background-color: #0055aa;
 }
 
+.fc {
+  font-size: 0.85rem;
+}
+.fc-toolbar-title {
+  font-size: 1.25rem;
+}
+.fc-daygrid-event {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
