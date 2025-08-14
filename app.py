@@ -6,11 +6,36 @@ from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from email.message import EmailMessage
+from werkzeug.utils import secure_filename  # <— falls noch nicht importiert
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Upload/Diagramm-Config
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB pro Request
+
+# Basisordner für die Diagramme
+DIAGRAM_BASE = os.path.join('static', 'diagramme', 'ausschussquote')
+
+DIAGRAM_TYPES = {
+    'produktivitaet':       'Produktivität',
+    'stueckzahlen':         'Stückzahlen [GE]',
+    'lieferzeit':           'Lieferzeit',
+    'termintreue':          'Termintreue',
+    'fertigungsqualitaet':  'Fertigungsqualität',
+    'prozesstoerung':       'Prozesstörung',
+}
+
+# Ordner anlegen
+os.makedirs(DIAGRAM_BASE, exist_ok=True)
+for key in DIAGRAM_TYPES:
+    os.makedirs(os.path.join(DIAGRAM_BASE, key), exist_ok=True)
+    
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Ensure folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -308,7 +333,13 @@ def schulungen():
 @app.route('/api/trainings')
 def api_trainings():
     conn = get_db_connection()
-    rows = conn.execute('SELECT * FROM trainings ORDER BY date ASC, time ASC').fetchall()
+    rows = conn.execute("""
+        SELECT * FROM trainings
+        WHERE
+            date > DATE('now')
+            OR (date = DATE('now') AND (time IS NULL OR time >= TIME('now')))
+        ORDER BY date ASC, time ASC
+    """).fetchall()
     conn.close()
 
     events = []
@@ -319,11 +350,15 @@ def api_trainings():
 
         events.append({
             "title": title,
-            "start": row['date'],  # Muss ISO-Format sein: "YYYY-MM-DD"
-            "allDay": True
+            "start": row['date'],   # YYYY-MM-DD
+            "allDay": True,
+            "extendedProps": {
+                "participants": row['participants'] or ""
+            }
         })
 
     return jsonify(events)
+
 
 
 @app.route('/admin/trainings', methods=['GET', 'POST'])
@@ -338,24 +373,43 @@ def admin_trainings():
         participants = request.form.get('participants')
 
         conn = get_db_connection()
-        conn.execute('''
+        conn.execute("""
             INSERT INTO trainings (title, date, time, participants)
             VALUES (?, ?, ?, ?)
-        ''', (title, date, time, participants))
+        """, (title, date, time, participants))
         conn.commit()
         conn.close()
 
         flash("Schulung erfolgreich hinzugefügt.")
         return redirect(url_for('admin_trainings'))
 
-    return render_template('admin_trainings.html')
+    # GET: Liste anzeigen
+    conn = get_db_connection()
+    trainings = conn.execute("SELECT * FROM trainings ORDER BY date DESC, time DESC").fetchall()
+    conn.close()
+    return render_template('admin_trainings.html', trainings=trainings)
+
+@app.route('/admin/trainings/<int:tid>/delete', methods=['POST'])
+def admin_trainings_delete(tid):
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute("DELETE FROM trainings WHERE id = ?", (tid,))
+    conn.commit()
+    conn.close()
+    flash("Schulung gelöscht.")
+    return redirect(url_for('admin_trainings'))
+
 
 @app.route('/api/trainings/upcoming')
 def api_upcoming_trainings():
     conn = get_db_connection()
-    rows = conn.execute(
-        'SELECT * FROM trainings WHERE date BETWEEN DATE("now") AND DATE("now", "+30 day") ORDER BY date ASC, time ASC'
-    ).fetchall()
+    rows = conn.execute("""
+        SELECT * FROM trainings
+        WHERE date BETWEEN DATE('now') AND DATE('now', '+30 day')
+        ORDER BY date ASC, time ASC
+    """).fetchall()
     conn.close()
 
     html = ""
@@ -363,12 +417,102 @@ def api_upcoming_trainings():
         title = t['title']
         date = t['date']
         time = t['time']
+        participants = (t['participants'] or "").strip()
+
         display = f"<strong>{date}</strong> – {title}"
         if time:
             display += f", {time}"
+
+        if participants:
+            # als kleine Liste darunter
+            plist = "".join(f"<li>{p.strip()}</li>" for p in participants.split(",") if p.strip())
+            display += f"<div class='mt-1'><em>Teilnehmer:</em><ul class='mb-0'>{plist}</ul></div>"
+
         html += f"<li class='list-group-item'>{display}</li>"
 
     return html
+
+@app.route('/admin/upload_qualimatrix', methods=['GET', 'POST'])
+def upload_qualimatrix():
+    # Optional: nur eingeloggte Admins – falls du nur Login willst, ersetze durch "if not session.get('user_id')"
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        updated = []
+        for key, label in DIAGRAM_TYPES.items():
+            # mehrere Dateien pro Feld
+            files = request.files.getlist(key)
+            # es wurde nichts ausgewählt
+            files = [f for f in files if f and f.filename]
+
+            if not files:
+                continue
+
+            target_dir = os.path.join(DIAGRAM_BASE, key)
+            # Ordner leeren = "überschreiben"
+            for name in os.listdir(target_dir):
+                try:
+                    os.remove(os.path.join(target_dir, name))
+                except Exception:
+                    pass
+
+            # neue Dateien speichern
+            for f in files:
+                if allowed_file(f.filename):
+                    fname = secure_filename(f.filename)
+                    f.save(os.path.join(target_dir, fname))
+
+            updated.append(label)
+
+        if updated:
+            flash(f"Upload erfolgreich für: {', '.join(updated)}")
+        else:
+            flash("Keine Dateien ausgewählt.")
+
+        return redirect(url_for('upload_qualimatrix'))
+
+    # GET
+    return render_template('upload_qualimatrix.html', diagram_types=DIAGRAM_TYPES)
+
+# ---- Helfer: Daten für Qualimatrix sammeln ----
+def collect_qualimatrix_data():
+    groups = []      # [{key, label, images:[{src,name,mtime,key,label}]}]
+    all_images = []  # flache Liste über alle Gruppen
+
+    for key, label in DIAGRAM_TYPES.items():
+        folder = os.path.join(DIAGRAM_BASE, key)
+        images = []
+        if os.path.isdir(folder):
+            files = [
+                f for f in os.listdir(folder)
+                if os.path.isfile(os.path.join(folder, f)) and allowed_file(f)
+            ]
+            # Neueste zuerst
+            files.sort(key=lambda n: os.path.getmtime(os.path.join(folder, n)), reverse=True)
+            for name in files:
+                path = os.path.join(folder, name)
+                item = {
+                    "src": url_for('static', filename=f'diagramme/ausschussquote/{key}/{name}'),
+                    "name": name,
+                    "mtime": os.path.getmtime(path),
+                    "key": key,
+                    "label": label,
+                }
+                images.append(item)
+                all_images.append(item)
+        groups.append({"key": key, "label": label, "images": images})
+
+    # Optional: global sort (neueste zuerst)
+    all_images.sort(key=lambda x: x["mtime"], reverse=True)
+    return groups, all_images
+
+@app.route('/qualimatrix')
+def qualimatrix():
+    groups, all_images = collect_qualimatrix_data()
+    return render_template('qualimatrix.html',
+                           diagram_groups=groups,
+                           all_images=all_images)
 
 @app.route('/dashboard')
 def dashboard():

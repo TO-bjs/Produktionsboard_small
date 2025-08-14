@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Qualimatrix{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+  <div class="d-flex justify-content-between align-items-center mb-2 qm-header">
+    <h2 class="m-0">🧪 Qualimatrix – Ausschuss-Kennzahlen</h2>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-secondary view-toggle" data-view="slider">Slider</button>
+      <button type="button" class="btn btn-outline-secondary view-toggle" data-view="grid">2er-Grid</button>
+      <a href="{{ url_for('landing') }}" class="btn btn-outline-secondary ms-2">Zurück</a>
+      {% if session.get('is_admin') %}
+        <a href="{{ url_for('upload_qualimatrix') }}" class="btn btn-primary">Upload</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ======= Ansicht 1: EIN zentraler Slider über ALLE Bilder ======= -->
+  <div class="qm-view qm-view-slider">
+    {% if all_images %}
+      <div id="hero-slider" class="qm-hero">
+        {% for img in all_images %}
+          <figure class="qm-slide {% if not loop.first %}d-none{% endif %}">
+            <img src="{{ img.src }}" alt="{{ img.label }} – {{ img.name }}" class="qm-media">
+            <figcaption class="qm-caption">
+              <span class="badge bg-dark bg-opacity-75 me-2">{{ img.label }}</span>
+              <span class="text-truncate">{{ img.name }}</span>
+            </figcaption>
+          </figure>
+        {% endfor %}
+      </div>
+
+      {% if all_images|length > 1 %}
+      <div class="d-flex justify-content-center gap-3 mt-3">
+        <button class="btn btn-sm btn-outline-secondary" id="hero-prev">◀</button>
+        <button class="btn btn-sm btn-outline-secondary" id="hero-next">▶</button>
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="text-muted">Keine Bilder vorhanden.</div>
+    {% endif %}
+  </div>
+
+  <!-- ======= Ansicht 2: 2er-Grid über ALLE Bilder (gleich groß wie Slider) ======= -->
+  <div class="qm-view qm-view-grid" style="display:none;">
+    {% if all_images %}
+      <div class="two-col-grid">
+        {% for img in all_images %}
+          <figure class="qm-card">
+            <img src="{{ img.src }}" alt="{{ img.label }} – {{ img.name }}" class="qm-media">
+            <figcaption class="qm-cap">
+              <span class="badge bg-secondary me-2">{{ img.label }}</span>
+              <span class="text-truncate d-inline-block" style="max-width:60ch;">{{ img.name }}</span>
+            </figcaption>
+          </figure>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted">Keine Bilder vorhanden.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ===== View Toggle (persistiert) =====
+  (function () {
+    const pref = localStorage.getItem('qm-view') || 'grid';
+    setView(pref);
+    document.querySelectorAll('.view-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const v = btn.dataset.view;
+        setView(v);
+        localStorage.setItem('qm-view', v);
+      });
+    });
+    function setView(v) {
+      document.querySelectorAll('.qm-view-slider').forEach(el => el.style.display = v === 'slider' ? 'block' : 'none');
+      document.querySelectorAll('.qm-view-grid').forEach(el => el.style.display = v === 'grid' ? 'block' : 'none');
+      document.querySelectorAll('.view-toggle').forEach(b => {
+        const active = b.dataset.view === v;
+        b.classList.toggle('btn-secondary', active);
+        b.classList.toggle('btn-outline-secondary', !active);
+      });
+    }
+  })();
+
+  // ===== EIN zentraler Slider über ALLE Bilder (Slide-In/Out wie Landing) =====
+  (function () {
+    const SLIDE_MS = 10000, ANIM_MS = 500;
+    const slider = document.getElementById('hero-slider');
+    if (!slider) return;
+
+    const slides = Array.from(slider.querySelectorAll('.qm-slide'));
+    if (!slides.length) return;
+
+    let i = 0;
+    slides.forEach(s => s.classList.add('transition-slide'));
+    slides[0].classList.add('active');
+
+    function show(idx) {
+      slides.forEach((el, k) => {
+        if (k === idx) {
+          el.classList.remove('d-none', 'slide-out');
+          void el.offsetWidth;                   // reflow -> Animation erneut
+          el.classList.add('slide-in', 'active');
+        } else {
+          el.classList.remove('slide-in', 'active');
+          el.classList.add('slide-out');
+          setTimeout(() => el.classList.add('d-none'), ANIM_MS);
+        }
+      });
+    }
+    function next(){ i = (i + 1) % slides.length; show(i); }
+    function prev(){ i = (i - 1 + slides.length) % slides.length; show(i); }
+
+    let timer = setInterval(next, SLIDE_MS);
+    slider.addEventListener('mouseenter', () => clearInterval(timer));
+    slider.addEventListener('mouseleave', () => timer = setInterval(next, SLIDE_MS));
+
+    const prevBtn = document.getElementById('hero-prev');
+    const nextBtn = document.getElementById('hero-next');
+    if (prevBtn) prevBtn.addEventListener('click', () => { clearInterval(timer); prev(); timer = setInterval(next, SLIDE_MS); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { clearInterval(timer); next(); timer = setInterval(next, SLIDE_MS); });
+  })();
+
+  // Passt die verfügbare Höhe dynamisch an, damit kein Scrollbalken entsteht
+  (function () {
+    function fitHero() {
+      const navbar = document.querySelector('.navbar');
+      const header = document.querySelector('.qm-header'); // oben ergänzt
+      const hasControls = document.getElementById('hero-prev') || document.getElementById('hero-next');
+      
+      // geschätzte Zusatz-Offsets (Caption, Buttons, Innenabstand)
+      const caption = 28;                  // Bildunterschrift
+      const controls = hasControls ? 44 : 0;
+      const containerY = 24;               // padding/margins im Container
+      const gap = 8;                       // kleiner Sicherheitsabzug
+
+      const used = (navbar ? navbar.offsetHeight : 0)
+                 + (header ? header.offsetHeight : 0)
+                 + caption + controls + containerY + gap;
+
+      const h = Math.max(300, window.innerHeight - used);
+      document.documentElement.style.setProperty('--hero-max-h', h + 'px');
+    }
+
+    window.addEventListener('load', fitHero);
+    window.addEventListener('resize', fitHero);
+    // optional: nach Bild-Laden nochmal messen
+    window.addEventListener('pageshow', fitHero);
+
+
+    // Nur umleiten, wenn "?slideshow=1" in der URL ist
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("slideshow") === "1") {
+    const nextPages = {
+      "/landing": "/anzeige?slideshow=1",
+      "/anzeige": "/schulungen?slideshow=1",
+      "/schulungen": "/qualimatrix?slideshow=1",
+      "/qualimatrix": "/landing?slideshow=1"
+    };
+
+    const path = window.location.pathname;
+    const next = nextPages[path];
+
+
+    if (next) {
+      setTimeout(() => {
+        window.location.href = next;
+      }, 60000);
+    }
+  }
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+  :root { --hero-max-h: 65vh; } /* gemeinsame Zielgröße für Slider & Grid */
+
+  /* Hero-Slider Container */
+  .qm-hero {
+    display: grid;
+    place-items: center;
+    min-height: calc var(--hero-max-h);
+  }
+
+  /* Mediengröße: identisch in Slider & Grid */
+  .qm-media {
+    max-height: var(--hero-max-h);
+    width: 100%;
+    object-fit: contain;   /* ganze Grafik sichtbar */
+    display: block;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+
+  /* Slider-Animation (wie Landing) */
+  .transition-slide { transition: transform .5s ease, opacity .5s ease; }
+  .slide-in  { transform: translateX(0);    opacity: 1; }
+  .slide-out { transform: translateX(-6%);  opacity: 0; }
+
+  .qm-caption {
+    margin-top: .5rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: .9rem;
+  }
+
+  /* 2er-Grid über ALLE Bilder, gleiche Höhe wie Slider */
+  .two-col-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 992px) { .two-col-grid { grid-template-columns: 1fr; } }
+
+  .qm-card {
+    margin: 0;
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  .qm-cap {
+    margin-top: 6px;
+    font-size: .9rem;
+    color: #6b7280;
+  }
+</style>
+{% endblock %}

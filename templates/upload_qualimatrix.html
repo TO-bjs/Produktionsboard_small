@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Qualimatrix-Upload{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  <h2 class="mb-3">📤 Ausschuss – Diagramme hochladen</h2>
+  <p class="text-muted">Für jedes Diagramm kannst du mehrere Dateien auf einmal wählen. Der jeweilige Zielordner wird dabei <strong>geleert</strong> (Überschreiben), und die neuen Dateien werden gespeichert. In der Anzeige wird immer die <strong>neueste Datei</strong> pro Ordner gezeigt.</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info">
+        {% for m in messages %}<div>{{ m }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data" class="border rounded p-3 bg-white">
+    <div class="row g-3">
+      {% for key, label in diagram_types.items() %}
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ label }}</label>
+          <input class="form-control" type="file" name="{{ key }}" multiple accept=".png,.jpg,.jpeg,.webp,.gif,.svg">
+          <div class="form-text">Ordner: <code>static/diagramme/ausschussquote/{{ key }}/</code></div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn btn-primary" type="submit">Hochladen</button>
+      <a class="btn btn-secondary" href="{{ url_for('qualimatrix') }}">Zur Anzeige</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('landing') }}">Zurück</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -36,5 +36,45 @@
     <button type="submit" class="btn btn-primary">Schulung speichern</button>
     <a href="{{ url_for('schulungen') }}" class="btn btn-secondary ms-2">Zur Übersicht</a>
   </form>
+
+  <hr class="my-4">
+
+<h3 class="mb-3">Vorhandene Schulungen</h3>
+
+{% if trainings and trainings|length > 0 %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Datum</th>
+          <th>Uhrzeit</th>
+          <th>Titel</th>
+          <th>Teilnehmer</th>
+          <th class="text-end">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in trainings %}
+        <tr>
+          <td>{{ t.id }}</td>
+          <td>{{ t.date }}</td>
+          <td>{{ t.time or '' }}</td>
+          <td>{{ t.title }}</td>
+          <td class="small">{{ t.participants }}</td>
+          <td class="text-end">
+            <form method="post" action="{{ url_for('admin_trainings_delete', tid=t.id) }}"
+                  onsubmit="return confirm('Schulung wirklich löschen?');">
+              <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="text-muted">Noch keine Schulungen angelegt.</p>
+{% endif %}
 </div>
 {% endblock %}

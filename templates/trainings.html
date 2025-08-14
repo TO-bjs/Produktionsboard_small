@@ -23,34 +23,38 @@
     const calendarEl = document.getElementById('calendar');
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'de',
-        height: 550,
-        events: '/api/trainings'
-});
-
+      initialView: 'dayGridMonth',
+      locale: 'de',
+      height: 550,
+      events: '/api/trainings',
+      eventClick: function(info) {
+        const title = info.event.title || '';
+        const participants = (info.event.extendedProps && info.event.extendedProps.participants) || '';
+        let message = title;
+        if (participants.trim()) {
+          const list = participants.split(',').map(p => p.trim()).filter(Boolean).join('\n• ');
+          message += '\n\nTeilnehmer:\n• ' + list;
+        } else {
+          message += '\n\nKeine Teilnehmer eingetragen.';
+        }
+        alert(message);
+      }
+    });
 
     calendar.render();
 
-        // 🔁 Alle 30 Sekunden neu laden
-    setInterval(() => {
-      calendar.refetchEvents();
-    }, 30000);
+    setInterval(() => calendar.refetchEvents(), 30000);
 
-        // 🔁 Reload für "In den nächsten 30 Tagen"-Liste
     function reloadUpcomingList() {
       fetch('/api/trainings/upcoming')
         .then(response => response.text())
-        .then(html => {
-          document.getElementById('upcoming-list').innerHTML = html;
-        });
+        .then(html => { document.getElementById('upcoming-list').innerHTML = html; });
     }
-
-    // Initialer Aufruf & alle 30 Sekunden wiederholen
     reloadUpcomingList();
     setInterval(reloadUpcomingList, 30000);
   });
 </script>
+
 <script>
   // Nur umleiten, wenn "?slideshow=1" in der URL ist
   const params = new URLSearchParams(window.location.search);
@@ -58,7 +62,8 @@
     const nextPages = {
       "/landing": "/anzeige?slideshow=1",
       "/anzeige": "/schulungen?slideshow=1",
-      "/schulungen": "/landing?slideshow=1"
+      "/schulungen": "/qualimatrix?slideshow=1",
+      "/qualimatrix": "/landing?slideshow=1"
     };
 
     const path = window.location.pathname;
