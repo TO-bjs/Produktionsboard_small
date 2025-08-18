@@ -130,6 +130,31 @@
       }, 60000);
     }
   }
+
+    // Dashboard-Weiterleitung (nur aktiv, wenn ?slideshow=1)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("slideshow") !== "1") return;
+
+    // Falls vorhanden: direkt Slider-Ansicht erzwingen (passend zu Landing)
+    if (window.__qmSetView) window.__qmSetView("slider");
+
+    // Trailing Slash neutralisieren ("/qualimatrix/" -> "/qualimatrix")
+    const path = window.location.pathname.replace(/\/+$/, "");
+
+    const nextPages = {
+      "/landing":     "/anzeige?slideshow=1",
+      "/anzeige":     "/schulungen?slideshow=1",
+      "/schulungen":  "/qualimatrix?slideshow=1",
+      "/qualimatrix": "/landing?slideshow=1"
+    };
+
+    const next = nextPages[path];
+    if (next) {
+      // Intervall anpassen: 60000 = 60s
+      setTimeout(() => { window.location.href = next; }, 60000);
+    }
+  })();
 </script>
 
 {% endblock %}

@@ -475,11 +475,10 @@ def upload_qualimatrix():
     # GET
     return render_template('upload_qualimatrix.html', diagram_types=DIAGRAM_TYPES)
 
-# ---- Helfer: Daten für Qualimatrix sammeln ----
+# ---- Helfer: Daten für Qualimatrix sammeln (Gruppen + flache Liste) ----
 def collect_qualimatrix_data():
-    groups = []      # [{key, label, images:[{src,name,mtime,key,label}]}]
-    all_images = []  # flache Liste über alle Gruppen
-
+    groups = []
+    all_images = []
     for key, label in DIAGRAM_TYPES.items():
         folder = os.path.join(DIAGRAM_BASE, key)
         images = []
@@ -488,7 +487,6 @@ def collect_qualimatrix_data():
                 f for f in os.listdir(folder)
                 if os.path.isfile(os.path.join(folder, f)) and allowed_file(f)
             ]
-            # Neueste zuerst
             files.sort(key=lambda n: os.path.getmtime(os.path.join(folder, n)), reverse=True)
             for name in files:
                 path = os.path.join(folder, name)
@@ -502,10 +500,9 @@ def collect_qualimatrix_data():
                 images.append(item)
                 all_images.append(item)
         groups.append({"key": key, "label": label, "images": images})
-
-    # Optional: global sort (neueste zuerst)
     all_images.sort(key=lambda x: x["mtime"], reverse=True)
     return groups, all_images
+
 
 @app.route('/qualimatrix')
 def qualimatrix():

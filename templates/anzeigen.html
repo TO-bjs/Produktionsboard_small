@@ -3,35 +3,66 @@
 {% block title %}Feinterminierung{% endblock %}
 
 {% block content %}
-<div class="container mt-5 text-center">
-  <h2 class="mb-4">📊 Aktuelle Feinterminierung</h2>
-  
-  <img src="/uploads/screenshot.png?ts={{ timestamp }}" alt="Screenshot" class="img-fluid rounded border shadow">
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center px-3 pt-3">
+    <h2 id="ft-head" class="mb-3">📊 Aktuelle Feinterminierung</h2>
+  </div>
 
+  <!-- KEIN zusätzliches px-2 hier -->
+  <div class="screen-fit">
+    <img id="ft-img" src="/uploads/screenshot.png?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
+  </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
-  // Nur umleiten, wenn "?slideshow=1" in der URL ist
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("slideshow") === "1") {
+  (function () {
+    function fit() {
+      const navbar = document.querySelector('.navbar');
+      const head   = document.getElementById('ft-head');
+
+      // Margins der Überschrift mit abziehen (offsetHeight enthält sie nicht)
+      let headMargins = 0;
+      if (head) {
+        const s = getComputedStyle(head);
+        headMargins = parseFloat(s.marginTop || 0) + parseFloat(s.marginBottom || 0);
+      }
+
+      const used = (navbar ? navbar.offsetHeight : 0)
+                + (head ? head.offsetHeight : 0)
+                + headMargins;
+
+      // -1 px Puffer, damit sicher kein Scrollbalken erscheint
+      const h = Math.max(320, window.innerHeight - used - 1);
+      document.documentElement.style.setProperty('--screen-fit-h', h + 'px');
+    }
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('slideshow') === '1') {
+      const head = document.getElementById('ft-head');
+      if (head) head.style.display = 'none';
+      document.body.classList.add('noscroll');
+    }
+
+    window.addEventListener('load', fit);
+    window.addEventListener('resize', fit);
+  })();
+
+  // Dashboard-Weiterleitung (wie auf deinen anderen Seiten)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("slideshow") !== "1") return;
+
+    const path = window.location.pathname.replace(/\/+$/, "");
     const nextPages = {
-      "/landing": "/anzeige?slideshow=1",
-      "/anzeige": "/schulungen?slideshow=1",
-      "/schulungen": "/qualimatrix?slideshow=1",
+      "/landing":     "/anzeige?slideshow=1",
+      "/anzeige":     "/schulungen?slideshow=1",
+      "/schulungen":  "/qualimatrix?slideshow=1",
       "/qualimatrix": "/landing?slideshow=1"
     };
-
-    const path = window.location.pathname;
     const next = nextPages[path];
-
-
-    if (next) {
-      setTimeout(() => {
-        window.location.href = next;
-      }, 60000);
-    }
-  }
+    if (next) setTimeout(() => { window.location.href = next; }, 60000);
+  })();
 </script>
-
 {% endblock %}

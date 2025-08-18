@@ -179,3 +179,30 @@
   padding: 2px 4px;
   border-radius: 4px;
 }
+
+/* Vollbild-Frame ohne Überlauf */
+.screen-fit{
+  width: 100%;                     /* statt 100vw -> kein 1-2px Überlauf */
+  height: var(--screen-fit-h, 70vh);
+  display: grid;
+  place-items: center;
+  overflow: hidden;                /* zur Sicherheit: kein Scrollen im Frame */
+}
+
+
+/* Bild füllt den Frame, aber ohne Verzerrung */
+.fit-image{
+  box-sizing: border-box;          /* Border/Shadow zählen zur Breite/Höhe */
+  width: 100%;
+  height: 100%;
+  max-width: 100%;                 /* verhindert horizontales Überlaufen */
+  max-height: 100%;
+  object-fit: contain;             /* alles sichtbar, kein Zuschnitt */
+  display: block;
+}
+
+/* Nur im Slideshow-Modus wirklich komplett ohne Scrollen */
+body.noscroll { overflow: hidden; }
+
+/* (Optional) harte Absicherung gegen horizontales Scrollen auf der Seite */
+html, body { overflow-x: hidden; }
