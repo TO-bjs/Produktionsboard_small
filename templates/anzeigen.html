@@ -39,11 +39,6 @@
     }
 
     const params = new URLSearchParams(location.search);
-    if (params.get('slideshow') === '1') {
-      const head = document.getElementById('ft-head');
-      if (head) head.style.display = 'none';
-      document.body.classList.add('noscroll');
-    }
 
     window.addEventListener('load', fit);
     window.addEventListener('resize', fit);
