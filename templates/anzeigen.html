@@ -9,7 +9,7 @@
   </div>
 
   <div class="screen-fit" style="flex-grow: 1; overflow: hidden;">
-    <img id="ft-img" src="/uploads/screenshot.png?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
+    <img id="ft-img" src="{{ url_for('public.uploaded_file', filename=screenshot_path) }}?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
   </div>
 </div>
 {% endblock %}
