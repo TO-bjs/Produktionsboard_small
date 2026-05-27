@@ -29,34 +29,9 @@
   
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/static/style.css">
-  <style>
-    .navbar-custom {
-      background-color: #003366;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .navbar-custom .navbar-brand,
-    .navbar-custom .nav-link {
-      color: white;
-      transition: color 0.2s ease;
-    }
-    .navbar-custom .nav-link:hover {
-      color: #b9a912ff;
-    }
-    .content-wrapper {
-      padding: 1.5rem;
-    }
-    @media (max-width: 768px) {
-      .content-wrapper {
-        padding: 1rem;
-      }
-      .navbar-custom .navbar-brand {
-        font-size: 1.1rem;
-      }
-    }
-  </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-custom px-3">
+<nav class="navbar navbar-expand-lg app-navbar px-3">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" href="/landing">
       <img src="/static/logo.png" alt="Logo" height="40" class="me-2">
@@ -72,7 +47,7 @@
 
         <!-- PRODUKTION: Immer sichtbar -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-white" href="#" id="prodDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle" href="#" id="prodDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             📦 Produktion
           </a>
           <ul class="dropdown-menu" aria-labelledby="prodDropdown">
@@ -85,7 +60,7 @@
         <!-- ADMIN: Nur sichtbar wenn admin -->
         {% if session.get('is_admin') %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             🔧 Admin
           </a>
           <ul class="dropdown-menu" aria-labelledby="adminDropdown">
@@ -102,12 +77,12 @@
       <!-- Rechts: Willkommensname + Login/Logout -->
       <div class="d-flex align-items-center ms-auto">
         {% if session.get('user_id') %}
-          <div class="text-end me-3 text-white" style="white-space: nowrap;">
+          <div class="text-end me-3 user-welcome">
             Willkommen,<br><strong>{{ session.username }}</strong>
           </div>
-          <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-logout">Logout</a>
         {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn btn-success">Login</a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-login">Login</a>
         {% endif %}
       </div>
     </div>
