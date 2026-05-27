@@ -52,11 +52,12 @@
       <td>{{ a.expires_at or "∞" }}</td>
       <td>
         {% if a.attachment_path %}
-        <a href="{{ url_for('uploaded_file', filename=a.attachment_path) }}" target="_blank">📎</a>
+        <a href="{{ url_for('public.uploaded_file', filename=a.attachment_path) }}" target="_blank">📎</a>
         {% endif %}
       </td>
       <td>
-        <form method="POST" action="{{ url_for('delete_announcement', id=a.id) }}" class="d-inline">
+        <form method="POST" action="{{ url_for('admin.manage_announcements') }}" class="d-inline">
+          <input type="hidden" name="delete_id" value="{{ a.id }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger btn-sm">🗑️ Löschen</button>
         </form>
@@ -66,5 +67,5 @@
   </tbody>
 </table>
 
-<a href="{{ url_for('landing') }}" class="btn btn-secondary mt-3">⬅ Zurück</a>
+<a href="{{ url_for('public.landing') }}" class="btn btn-secondary mt-3">⬅ Zurück</a>
 {% endblock %}

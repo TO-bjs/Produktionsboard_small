@@ -23,6 +23,16 @@ def create_app(config_name=None):
     )
     cfg = config_name or os.environ.get('FLASK_ENV', 'development')
     app.config.from_object(CONFIG_MAP.get(cfg, CONFIG_MAP['development']))
+
+    # Normalize configured paths to absolute repo paths so runtime CWD does not affect file serving.
+    upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+    if not os.path.isabs(upload_folder):
+        app.config['UPLOAD_FOLDER'] = os.path.join(base_dir, upload_folder)
+
+    database_path = app.config.get('DATABASE', 'users.db')
+    if not os.path.isabs(database_path):
+        app.config['DATABASE'] = os.path.join(base_dir, database_path)
+
     configure_logging(app.config.get('LOG_LEVEL', 'INFO'))
 
     csrf.init_app(app)
