@@ -80,17 +80,17 @@ def api_upcoming_trainings():
     conn = get_db_connection()
     rows = conn.execute("""SELECT * FROM trainings WHERE date BETWEEN DATE('now') AND DATE('now', '+30 day') ORDER BY date ASC, time ASC""").fetchall()
     conn.close()
-    html = ''
-    for t in rows:
-        display = f"<strong>{t['date']}</strong> – {t['title']}"
-        if t['time']:
-            display += f", {t['time']}"
-        participants = (t['participants'] or '').strip()
-        if participants:
-            plist = ''.join(f"<li>{p.strip()}</li>" for p in participants.split(',') if p.strip())
-            display += f"<div class='mt-1'><em>Teilnehmer:</em><ul class='mb-0'>{plist}</ul></div>"
-        html += f"<li class='list-group-item'>{display}</li>"
-    return html
+    upcoming = []
+    for row in rows:
+        participants = (row['participants'] or '').strip()
+        participant_list = [p.strip() for p in participants.split(',') if p.strip()]
+        upcoming.append({
+            'date': row['date'],
+            'title': row['title'],
+            'time': row['time'],
+            'participants': participant_list
+        })
+    return jsonify(upcoming)
 
 @public_bp.route('/qualimatrix')
 def qualimatrix():
