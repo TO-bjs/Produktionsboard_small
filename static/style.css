@@ -164,11 +164,6 @@
   }
 }
 
-/* Dropdown-Menüs bei Hover öffnen */
-.navbar-nav .dropdown:hover .dropdown-menu {
-  display: block;
-  margin-top: 0;
-}
 
 /* Dropdown-Styling dunkler + lesbar */
 .dropdown-menu {
@@ -186,6 +181,36 @@
 
 .dropdown-menu .dropdown-item:hover {
   background-color: #0055aa;
+}
+
+
+/* Accessibility: sichtbare Fokuszustände für Tastatur-Navigation */
+.navbar-custom .navbar-toggler:focus-visible,
+.navbar-custom .nav-link:focus-visible,
+.navbar-custom .dropdown-item:focus-visible,
+.navbar-custom .btn:focus-visible {
+  outline: 3px solid #ffd54f;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.navbar-custom .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.navbar-custom .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+@media (max-width: 576px) {
+  .navbar-custom .dropdown-menu {
+    position: static;
+    width: 100%;
+  }
+
+  .navbar-custom .dropdown-item {
+    white-space: normal;
+  }
 }
 
 /* FullCalendar Responsive */

@@ -63,15 +63,19 @@
       Produktionsboard
     </a>
 
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Navigation umschalten">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
         <!-- PRODUKTION: Immer sichtbar -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-white" href="#" id="prodDropdown" role="button" data-bs-toggle="dropdown">
+          <a class="nav-link dropdown-toggle text-white" href="#" id="prodDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             📦 Produktion
           </a>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu" aria-labelledby="prodDropdown">
             <li><a class="dropdown-item" href="{{ url_for('public.anzeigen') }}">📊 Feinterminierung</a></li>
             <li><a class="dropdown-item" href="{{ url_for('public.schulungen') }}">📅 Schulungskalender</a></li>
             <li><a class="dropdown-item" href="{{ url_for('public.qualimatrix') }}">🧪 Qualimatrix</a></li>
@@ -81,10 +85,10 @@
         <!-- ADMIN: Nur sichtbar wenn admin -->
         {% if session.get('is_admin') %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+          <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             🔧 Admin
           </a>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu" aria-labelledby="adminDropdown">
             <li><a class="dropdown-item" href="{{ url_for('admin.admin_users') }}">👤 Benutzerverwaltung</a></li>
             <li><a class="dropdown-item" href="{{ url_for('admin.manage_announcements') }}">📢 Ankündigungen</a></li>
             <li><a class="dropdown-item" href="{{ url_for('admin.admin_trainings') }}">📚 Schulungen</a></li>
