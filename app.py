@@ -260,7 +260,7 @@ def update_user():
     conn.commit()
     conn.close()
     flash("Benutzer erfolgreich aktualisiert.")
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin_users'))
 
 @app.route('/admin/ankuendigung', methods=['GET', 'POST'])
 def manage_announcements():
