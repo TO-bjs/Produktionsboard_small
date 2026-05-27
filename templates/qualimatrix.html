@@ -8,9 +8,9 @@
     <div class="d-flex gap-2 flex-wrap">
       <button type="button" class="btn btn-secondary btn-sm view-toggle" data-view="slider">Slider</button>
       <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="grid">Grid</button>
-      <a href="{{ url_for('landing') }}" class="btn btn-outline-secondary btn-sm">Zurück</a>
+      <a href="{{ url_for('public.landing') }}" class="btn btn-outline-secondary btn-sm">Zurück</a>
       {% if session.get('is_admin') %}
-        <a href="{{ url_for('upload_qualimatrix') }}" class="btn btn-primary btn-sm">Upload</a>
+        <a href="{{ url_for('admin.upload_qualimatrix') }}" class="btn btn-primary btn-sm">Upload</a>
       {% endif %}
     </div>
   </div>
