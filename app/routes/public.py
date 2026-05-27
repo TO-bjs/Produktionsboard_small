@@ -1,13 +1,36 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Blueprint, jsonify, redirect, render_template, request, send_from_directory, session, url_for, flash
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, send_from_directory, session, url_for, flash
 from werkzeug.utils import secure_filename
 
 from app.db import get_db_connection
 from app.services.storage import DIAGRAM_BASE, DIAGRAM_TYPES, allowed_file, save_uploaded_file
 
 public_bp = Blueprint('public', __name__)
+
+
+def _resolve_screenshot_path(requested_path=None):
+    if requested_path:
+        candidate = os.path.join(current_app.config['UPLOAD_FOLDER'], requested_path.replace('/', os.sep))
+        if os.path.isfile(candidate):
+            return requested_path
+
+    screenshot_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'screenshots')
+    if os.path.isdir(screenshot_dir):
+        files = [
+            name for name in os.listdir(screenshot_dir)
+            if os.path.isfile(os.path.join(screenshot_dir, name)) and allowed_file(name)
+        ]
+        if files:
+            files.sort(key=lambda name: os.path.getmtime(os.path.join(screenshot_dir, name)), reverse=True)
+            return f"screenshots/{files[0]}"
+
+    legacy_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'screenshot.png')
+    if os.path.isfile(legacy_path):
+        return 'screenshot.png'
+
+    return None
 
 @public_bp.route('/')
 @public_bp.route('/landing')
@@ -21,7 +44,7 @@ def landing():
 @public_bp.route('/anzeige')
 def anzeigen():
     timestamp = int(datetime.now().timestamp())
-    screenshot_path = request.args.get('image', 'screenshots/screenshot.png')
+    screenshot_path = _resolve_screenshot_path(request.args.get('image'))
     return render_template('anzeigen.html', timestamp=timestamp, screenshot_path=screenshot_path)
 
 @public_bp.route('/uploads/<path:filename>')
