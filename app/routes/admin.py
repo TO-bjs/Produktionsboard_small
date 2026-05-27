@@ -80,7 +80,7 @@ def admin_trainings():
         return redirect(url_for('auth.login'))
     if request.method == 'POST':
         conn = get_db_connection()
-        conn.execute('INSERT INTO trainings (title, date, time, participants) VALUES (?, ?, ?, ?)', (request.form['title'], request.form['date'], request.form.get('time'), request.form.get('participants')))
+        conn.execute('INSERT INTO trainings (title, date, time, location, participants) VALUES (?, ?, ?, ?, ?)', (request.form['title'], request.form['date'], request.form.get('time'), request.form.get('location'), request.form.get('participants')))
         conn.commit(); conn.close()
         flash('Schulung erfolgreich hinzugefügt.')
         return redirect(url_for('admin.admin_trainings'))
@@ -88,6 +88,36 @@ def admin_trainings():
     trainings = conn.execute('SELECT * FROM trainings ORDER BY date DESC, time DESC').fetchall()
     conn.close()
     return render_template('admin_trainings.html', trainings=trainings)
+
+
+@admin_bp.route('/admin/trainings/<int:tid>/edit', methods=['GET', 'POST'])
+def admin_trainings_edit(tid):
+    if not session.get('is_admin'):
+        return redirect(url_for('auth.login'))
+    conn = get_db_connection()
+    if request.method == 'POST':
+        conn.execute(
+            'UPDATE trainings SET title = ?, date = ?, time = ?, location = ?, participants = ? WHERE id = ?',
+            (
+                request.form['title'],
+                request.form['date'],
+                request.form.get('time'),
+                request.form.get('location'),
+                request.form.get('participants'),
+                tid,
+            ),
+        )
+        conn.commit()
+        conn.close()
+        flash('Schulung aktualisiert.')
+        return redirect(url_for('admin.admin_trainings'))
+
+    training = conn.execute('SELECT * FROM trainings WHERE id = ?', (tid,)).fetchone()
+    conn.close()
+    if not training:
+        flash('Schulung nicht gefunden.')
+        return redirect(url_for('admin.admin_trainings'))
+    return render_template('admin_trainings_edit.html', t=training)
 
 @admin_bp.route('/admin/trainings/<int:tid>/delete', methods=['POST'])
 def admin_trainings_delete(tid):
