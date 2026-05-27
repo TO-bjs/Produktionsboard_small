@@ -40,8 +40,8 @@ def upload():
             return redirect(url_for('public.upload'))
         try:
             screenshot_path = save_uploaded_file(file, 'screenshots')
-        except ValueError:
-            flash('Ungültiger Dateityp. Erlaubt sind nur Bilddateien.')
+        except ValueError as exc:
+            flash(f'Upload fehlgeschlagen: {exc}')
             return redirect(url_for('public.upload'))
         return redirect(url_for('public.anzeigen', image=screenshot_path))
     return render_template('upload.html')

@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from app.db import get_db_connection
-from app.services.storage import DIAGRAM_BASE, DIAGRAM_TYPES, allowed_file, save_uploaded_file
+from app.services.storage import DIAGRAM_BASE, DIAGRAM_TYPES, allowed_file, save_uploaded_file, validate_uploaded_file
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -63,8 +63,8 @@ def manage_announcements():
         if file and file.filename:
             try:
                 attachment_path = save_uploaded_file(file, 'announcements')
-            except ValueError:
-                flash('Ungültiger Dateityp. Erlaubt sind nur Bilddateien.')
+            except ValueError as exc:
+                flash(f'Upload fehlgeschlagen: {exc}')
                 conn.close()
                 return redirect(url_for('admin.manage_announcements'))
         conn.execute('INSERT INTO announcements (title, content, source, attachment_path, expires_at, created_by) VALUES (?, ?, ?, ?, ?, ?)',
@@ -111,16 +111,15 @@ def upload_qualimatrix():
             for name in os.listdir(target_dir):
                 try: os.remove(os.path.join(target_dir, name))
                 except Exception: pass
-            invalid_files = []
             for f in files:
                 safe_name = secure_filename(f.filename)
-                if not allowed_file(safe_name):
-                    invalid_files.append(f.filename); continue
+                try:
+                    validate_uploaded_file(f, 'QUALIMATRIX')
+                except ValueError as exc:
+                    flash(f"Upload fehlgeschlagen in {label} ({safe_name}): {exc}")
+                    return redirect(url_for('admin.upload_qualimatrix'))
                 ext = safe_name.rsplit('.', 1)[1].lower()
                 f.save(os.path.join(target_dir, f"{uuid.uuid4().hex}.{ext}"))
-            if invalid_files:
-                flash(f"Ungültiger Dateityp in {label}: {', '.join(invalid_files)}. Erlaubt sind nur Bilddateien.")
-                return redirect(url_for('admin.upload_qualimatrix'))
             updated.append(label)
         flash(f"Upload erfolgreich für: {', '.join(updated)}" if updated else 'Keine Dateien ausgewählt.')
         return redirect(url_for('admin.upload_qualimatrix'))
