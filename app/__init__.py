@@ -5,6 +5,7 @@ from flask_wtf.csrf import CSRFProtect
 
 from app.config import CONFIG_MAP
 from app.db import init_db
+from app.logging_config import configure_logging
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from app.routes.public import public_bp
@@ -17,6 +18,7 @@ def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=False)
     cfg = config_name or os.environ.get('FLASK_ENV', 'development')
     app.config.from_object(CONFIG_MAP.get(cfg, CONFIG_MAP['development']))
+    configure_logging(app.config.get('LOG_LEVEL', 'INFO'))
 
     csrf.init_app(app)
 

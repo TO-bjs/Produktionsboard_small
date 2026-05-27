@@ -2,6 +2,7 @@ import os
 
 
 class BaseConfig:
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
     SECRET_KEY = os.environ.get('SECRET_KEY', 'your_secret_key')
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
     WTF_CSRF_TIME_LIMIT = 3600
