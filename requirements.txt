@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 Flask-WTF==1.2.1
 WTForms==3.0.1
 waitress==2.1.2
+Pillow==11.2.1
