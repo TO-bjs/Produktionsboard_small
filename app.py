@@ -2,6 +2,7 @@ import os
 import sqlite3
 import secrets
 import smtplib
+import uuid
 from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -36,6 +37,18 @@ for key in DIAGRAM_TYPES:
     
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_uploaded_file(file_storage, target_folder: str) -> str:
+    original_name = secure_filename(file_storage.filename or "")
+    if not original_name or not allowed_file(original_name):
+        raise ValueError("Ungültiger Dateityp.")
+
+    ext = original_name.rsplit('.', 1)[1].lower()
+    unique_filename = f"{uuid.uuid4().hex}.{ext}"
+    full_dir = os.path.join(app.config['UPLOAD_FOLDER'], target_folder)
+    os.makedirs(full_dir, exist_ok=True)
+    file_storage.save(os.path.join(full_dir, unique_filename))
+    return os.path.join(target_folder, unique_filename).replace("\\", "/")
 
 # Ensure folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -99,9 +112,10 @@ def landing():
 @app.route('/anzeige')
 def anzeigen():
     timestamp = int(datetime.now().timestamp())
-    return render_template("anzeigen.html", timestamp=timestamp)
+    screenshot_path = request.args.get("image", "screenshots/screenshot.png")
+    return render_template("anzeigen.html", timestamp=timestamp, screenshot_path=screenshot_path)
 
-@app.route('/uploads/<filename>')
+@app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
@@ -110,11 +124,16 @@ def upload():
     if not session.get('user_id'):
         return redirect(url_for('login'))
     if request.method == 'POST':
-        file = request.files['file']
-        if file:
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
-            file.save(filepath)
-            return redirect(url_for('anzeigen'))
+        file = request.files.get('file')
+        if not file or not file.filename:
+            flash("Bitte eine Datei auswählen.")
+            return redirect(url_for('upload'))
+        try:
+            screenshot_path = save_uploaded_file(file, 'screenshots')
+        except ValueError:
+            flash("Ungültiger Dateityp. Erlaubt sind nur Bilddateien.")
+            return redirect(url_for('upload'))
+        return redirect(url_for('anzeigen', image=screenshot_path))
     return render_template('upload.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -288,9 +307,12 @@ def manage_announcements():
         attachment_path = None
 
         if file and file.filename:
-            save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(save_path)
-            attachment_path = file.filename
+            try:
+                attachment_path = save_uploaded_file(file, 'announcements')
+            except ValueError:
+                flash("Ungültiger Dateityp. Erlaubt sind nur Bilddateien.")
+                conn.close()
+                return redirect(url_for('manage_announcements'))
 
         conn.execute('''
             INSERT INTO announcements (title, content, source, attachment_path, expires_at, created_by)
@@ -468,10 +490,22 @@ def upload_qualimatrix():
                     pass
 
             # neue Dateien speichern
+            invalid_files = []
             for f in files:
-                if allowed_file(f.filename):
-                    fname = secure_filename(f.filename)
-                    f.save(os.path.join(target_dir, fname))
+                safe_name = secure_filename(f.filename)
+                if not allowed_file(safe_name):
+                    invalid_files.append(f.filename)
+                    continue
+                ext = safe_name.rsplit('.', 1)[1].lower()
+                unique_name = f"{uuid.uuid4().hex}.{ext}"
+                f.save(os.path.join(target_dir, unique_name))
+
+            if invalid_files:
+                flash(
+                    f"Ungültiger Dateityp in {label}: {', '.join(invalid_files)}. "
+                    "Erlaubt sind nur Bilddateien."
+                )
+                return redirect(url_for('upload_qualimatrix'))
 
             updated.append(label)
 
