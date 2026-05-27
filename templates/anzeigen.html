@@ -9,7 +9,11 @@
   </div>
 
   <div class="screen-fit" style="flex-grow: 1; overflow: hidden;">
+    {% if screenshot_path %}
     <img id="ft-img" src="{{ url_for('public.uploaded_file', filename=screenshot_path) }}?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
+    {% else %}
+    <div class="text-muted">Kein Screenshot vorhanden. Bitte über Admin → Upload Feinterminierung hochladen.</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
