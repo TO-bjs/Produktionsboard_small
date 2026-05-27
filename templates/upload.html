@@ -7,6 +7,7 @@
   <h2 class="mb-4 text-center">⬆️ Datei hochladen</h2>
   
   <form method="post" enctype="multipart/form-data" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
       <label for="file" class="form-label">Datei auswählen (PNG):</label>
       <input class="form-control" type="file" id="file" name="file" accept="image/png" required>

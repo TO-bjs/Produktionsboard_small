@@ -5,6 +5,7 @@
 <h2>📰 Ankündigungen verwalten</h2>
 
 <form method="POST" enctype="multipart/form-data" class="mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row g-2">
     <div class="col-md-4">
       <input type="text" name="title" class="form-control" placeholder="Titel" required>
@@ -55,7 +56,11 @@
         {% endif %}
       </td>
       <td>
-        <a href="{{ url_for('manage_announcements', delete_id=a.id) }}" class="btn btn-danger btn-sm">🗑️ Löschen</a>
+        <form method="POST" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="delete_id" value="{{ a.id }}">
+          <button type="submit" class="btn btn-danger btn-sm">🗑️ Löschen</button>
+        </form>
       </td>
     </tr>
     {% endfor %}

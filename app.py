@@ -5,6 +5,7 @@ import smtplib
 import uuid
 from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from email.message import EmailMessage
 from werkzeug.utils import secure_filename  # <— falls noch nicht importiert
@@ -13,10 +14,13 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
 
 # Upload/Diagramm-Config
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'}
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB pro Request
+
+csrf = CSRFProtect(app)
 
 # Basisordner für die Diagramme
 DIAGRAM_BASE = os.path.join('static', 'diagramme', 'ausschussquote')
@@ -320,9 +324,10 @@ def manage_announcements():
         ''', (title, content, source, attachment_path, expires_at, session.get('user_id')))
         conn.commit()
 
-    if 'delete_id' in request.args:
-        conn.execute('DELETE FROM announcements WHERE id = ?', (request.args['delete_id'],))
+    if request.method == 'POST' and 'delete_id' in request.form:
+        conn.execute('DELETE FROM announcements WHERE id = ?', (request.form['delete_id'],))
         conn.commit()
+        conn.close()
         return redirect(url_for('manage_announcements'))
 
     announcements = conn.execute('SELECT * FROM announcements ORDER BY created_at DESC').fetchall()
