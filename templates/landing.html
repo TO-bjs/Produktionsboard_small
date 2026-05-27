@@ -12,7 +12,7 @@
     <a role="listitem" class="kpi-tile" href="{{ url_for('public.anzeigen') }}"><span>📊</span><strong>Anzeige</strong><small>Live-Kennzahlen & Feinterminierung</small></a>
     <a role="listitem" class="kpi-tile" href="{{ url_for('public.schulungen') }}"><span>🎓</span><strong>Schulungen</strong><small>Termine & Teilnehmer</small></a>
     <a role="listitem" class="kpi-tile" href="{{ url_for('public.qualimatrix') }}"><span>🧪</span><strong>Qualität</strong><small>Ausschuss- und Qualitätskennzahlen</small></a>
-    {% if session.get('is_admin') %}<a role="listitem" class="kpi-tile" href="{{ url_for('admin.admin') }}"><span>🛠️</span><strong>Admin</strong><small>Steuerung & Datenpflege</small></a>{% endif %}
+    {% if session.get('is_admin') %}<a role="listitem" class="kpi-tile" href="{{ url_for('admin.admin_users') }}"><span>🛠️</span><strong>Admin</strong><small>Steuerung & Datenpflege</small></a>{% endif %}
   </div>
 
   <article class="app-card app-card--announcement p-4" aria-labelledby="announcement-title">
