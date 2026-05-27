@@ -2,15 +2,15 @@
 {% block title %}Qualimatrix{% endblock %}
 
 {% block content %}
-<div class="container my-3">
-  <div class="d-flex justify-content-between align-items-center mb-2 qm-header">
-    <h2 class="m-0">🧪 Qualimatrix – Ausschuss-Kennzahlen</h2>
-    <div class="d-flex gap-2">
-      <button type="button" class="btn btn-secondary view-toggle" data-view="slider">Slider</button>
-      <button type="button" class="btn btn-outline-secondary view-toggle" data-view="grid">2er-Grid</button>
-      <a href="{{ url_for('landing') }}" class="btn btn-outline-secondary ms-2">Zurück</a>
+<div class="container-fluid my-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 qm-header flex-wrap gap-2">
+    <h2 class="m-0 flex-grow-1">🧪 Qualimatrix – Ausschuss-Kennzahlen</h2>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-secondary btn-sm view-toggle" data-view="slider">Slider</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="grid">Grid</button>
+      <a href="{{ url_for('landing') }}" class="btn btn-outline-secondary btn-sm">Zurück</a>
       {% if session.get('is_admin') %}
-        <a href="{{ url_for('upload_qualimatrix') }}" class="btn btn-primary">Upload</a>
+        <a href="{{ url_for('upload_qualimatrix') }}" class="btn btn-primary btn-sm">Upload</a>
       {% endif %}
     </div>
   </div>
@@ -63,6 +63,31 @@
 
 {% block scripts %}
 <script>
+  // ===== Responsive Höhe für Slider/Grid =====
+  (function () {
+    function adjustQmHeight() {
+      const navbar = document.querySelector('.navbar');
+      const header = document.querySelector('.qm-header');
+      const navHeight = navbar ? navbar.offsetHeight : 60;
+      const headerHeight = header ? header.offsetHeight : 60;
+      const topMargin = 24;
+      const bottomMargin = 24;
+      
+      const used = navHeight + headerHeight + topMargin + bottomMargin;
+      const availableHeight = Math.max(300, window.innerHeight - used);
+      
+      // CSS Custom Property setzen
+      document.documentElement.style.setProperty('--hero-max-h', availableHeight + 'px');
+    }
+
+    adjustQmHeight();
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(adjustQmHeight, 100);
+    });
+  })();
+
   // ===== View-Toggle (persistiert) =====
   (function () {
     const params = new URLSearchParams(location.search);
@@ -184,8 +209,7 @@
     const nextPages = {
       "/landing":     "/anzeige?slideshow=1",
       "/anzeige":     "/schulungen?slideshow=1",
-      "/schulungen":  "/qualimatrix?slideshow=1",
-      "/qualimatrix": "/landing?slideshow=1"
+      "/schulungen": "/landing?slideshow=1"
     };
 
     const next = nextPages[path];
@@ -237,7 +261,24 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
-  @media (max-width: 992px) { .two-col-grid { grid-template-columns: 1fr; } }
+
+  @media (max-width: 992px) {
+    .two-col-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .two-col-grid {
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .two-col-grid {
+      gap: 8px;
+    }
+  }
 
   .qm-card {
     margin: 0;

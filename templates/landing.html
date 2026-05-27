@@ -16,7 +16,7 @@
   <!-- Slideshow -->
   <div id="announcement-container" class="container mt-4 d-flex justify-content-center">
     <div id="announcement-card" class="card p-4 shadow"
-        style="width: 100%; max-width: 700px; min-height: 300px;">
+        style="width: 100%; max-width: 900px; min-height: 360px;">
     <div id="announcement-content-wrapper" class="transition-slide d-flex flex-column align-items-center text-center">
       <h5 class="card-title fw-bold text-primary" id="announcement-title"></h5>
       <p class="card-text" id="announcement-content"></p>
@@ -32,6 +32,9 @@
 
   const wrapper = document.getElementById("announcement-content-wrapper");
   const imgContainer = document.getElementById('announcement-image');
+  
+  let fetchInterval = null;
+  let slideInterval = null;
 
   async function fetchAnnouncements() {
     try {
@@ -44,6 +47,15 @@
         announcements = data;
         index = 0;
         showNext(true);  // sofort anzeigen
+        
+        // Auto-Sliding nur bei mehreren Ankündigungen
+        if (announcements.length > 1) {
+          if (slideInterval) clearInterval(slideInterval);
+          slideInterval = setInterval(() => showNext(false), 5000);
+        } else {
+          if (slideInterval) clearInterval(slideInterval);
+          slideInterval = null;
+        }
       }
     } catch (err) {
       console.error("Fehler beim Laden der Ankündigungen:", err);
@@ -53,6 +65,21 @@
   function showNext(initial = false) {
     if (announcements.length === 0) return;
 
+    // Wenn nur eine Ankündigung: keine Animation
+    if (announcements.length === 1) {
+      const a = announcements[0];
+      document.getElementById('announcement-title').textContent = a.title;
+      document.getElementById('announcement-content').textContent = a.content;
+      document.getElementById('announcement-source').textContent = "Quelle: " + a.source;
+      if (a.attachment_path) {
+        imgContainer.innerHTML = `<img src="/uploads/${a.attachment_path}" class="img-fluid rounded shadow-sm" style="max-height: 320px;">`;
+      } else {
+        imgContainer.innerHTML = '';
+      }
+      return;
+    }
+
+    // Mehrere Ankündigungen: mit Animation
     wrapper.classList.remove("slide-in");
     if (!initial) wrapper.classList.add("slide-out");
 
@@ -64,7 +91,7 @@
       document.getElementById('announcement-source').textContent = "Quelle: " + a.source;
 
       if (a.attachment_path) {
-        imgContainer.innerHTML = `<img src="/uploads/${a.attachment_path}" class="img-fluid rounded shadow-sm" style="max-height: 200px;">`;
+        imgContainer.innerHTML = `<img src="/uploads/${a.attachment_path}" class="img-fluid rounded shadow-sm" style="max-height: 320px;">`;
       } else {
         imgContainer.innerHTML = '';
       }
@@ -77,10 +104,36 @@
     }, initial ? 0 : 500);
   }
 
+  // Responsive Höhe für Announcement Card
+  function adjustAnnouncementHeight() {
+    const navbar = document.querySelector('.navbar');
+    const container = document.getElementById('announcement-container');
+    const navHeight = navbar ? navbar.offsetHeight : 60;
+    const containerMarginTop = 20;
+    const padding = 40;
+    
+    const availableHeight = window.innerHeight - navHeight - containerMarginTop - padding;
+    const maxHeight = Math.min(availableHeight, window.innerWidth < 576 ? 520 : 680);
+    const minHeight = Math.max(240, availableHeight * 0.55);
+    
+    const card = document.getElementById('announcement-card');
+    if (card) {
+      card.style.minHeight = minHeight + 'px';
+      card.style.maxHeight = maxHeight + 'px';
+    }
+  }
+
+  // Initial und bei Resize anpassen
+  adjustAnnouncementHeight();
+  let announcementResizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(announcementResizeTimeout);
+    announcementResizeTimeout = setTimeout(adjustAnnouncementHeight, 100);
+  });
+
   // Start
   fetchAnnouncements();
-  setInterval(fetchAnnouncements, 10000); // neue Ankündigungen alle 10 Sek
-  setInterval(() => showNext(false), 5000); // Slide alle 5 Sek
+  fetchInterval = setInterval(fetchAnnouncements, 10000); // neue Ankündigungen alle 10 Sek
 </script>
 
 
@@ -145,8 +198,7 @@
     const nextPages = {
       "/landing":     "/anzeige?slideshow=1",
       "/anzeige":     "/schulungen?slideshow=1",
-      "/schulungen":  "/qualimatrix?slideshow=1",
-      "/qualimatrix": "/landing?slideshow=1"
+      "/schulungen": "/landing?slideshow=1"
     };
 
     const next = nextPages[path];

@@ -10,7 +10,8 @@
     <div class="alert alert-danger text-center">{{ error }}</div>
   {% endif %}
 
-  <form method="POST">
+  <div class="card p-3 p-md-4">
+    <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="next" value="{{ next or '/' }}">
 
@@ -31,10 +32,11 @@
     <div class="text-center mb-3">
       <a href="/reset" class="link-secondary">🔁 Passwort vergessen?</a>
     </div>
-  </form>
+    </form>
+  </div>
 
-  <div class="text-start mt-4">
-    <a href="{{ url_for('landing') }}" class="btn btn-secondary">⬅️ Zurück</a>
+  <div class="text-start mt-3">
+    <a href="{{ url_for('landing') }}" class="btn btn-secondary btn-sm">⬅️ Zurück</a>
   </div>
 </div>
 {% endblock %}

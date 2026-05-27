@@ -3,14 +3,13 @@
 {% block title %}Feinterminierung{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-  <div class="d-flex justify-content-between align-items-center px-3 pt-3">
-    <h2 id="ft-head" class="mb-3">📊 Aktuelle Feinterminierung</h2>
+<div class="container-fluid d-flex flex-column" style="padding: 0.5rem; gap: 0.5rem; height: auto;">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 id="ft-head" class="mb-0" style="font-size: 1.5rem;">📊 Aktuelle Feinterminierung</h2>
   </div>
 
-  <!-- KEIN zusätzliches px-2 hier -->
-  <div class="screen-fit">
-    <img id="ft-img" src="/uploads/{{ screenshot_path }}?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
+  <div class="screen-fit" style="flex-grow: 1; overflow: hidden;">
+    <img id="ft-img" src="/uploads/screenshot.png?ts={{ timestamp }}" alt="Screenshot" class="fit-image">
   </div>
 </div>
 {% endblock %}
@@ -20,28 +19,34 @@
   (function () {
     function fit() {
       const navbar = document.querySelector('.navbar');
-      const head   = document.getElementById('ft-head');
+      const container = document.querySelector('.container-fluid');
+      const head = document.getElementById('ft-head');
+      const screenFit = document.querySelector('.screen-fit');
 
-      // Margins der Überschrift mit abziehen (offsetHeight enthält sie nicht)
-      let headMargins = 0;
-      if (head) {
-        const s = getComputedStyle(head);
-        headMargins = parseFloat(s.marginTop || 0) + parseFloat(s.marginBottom || 0);
+      // Navbar + Containerpadding
+      const navHeight = navbar ? navbar.offsetHeight : 60;
+      const containerStyle = window.getComputedStyle(container);
+      const containerPadding = parseFloat(containerStyle.paddingTop || 0) + parseFloat(containerStyle.paddingBottom || 0);
+      
+      // Head-Höhe + gap
+      let headHeight = head ? head.offsetHeight : 30;
+      const gap = 8; // gap: 0.5rem
+      
+      // Verfügbare Höhe für Image
+      const totalUsed = navHeight + containerPadding + headHeight + gap + 10; // 10px safety
+      const availableHeight = Math.max(300, window.innerHeight - totalUsed);
+      
+      if (screenFit) {
+        screenFit.style.height = availableHeight + 'px';
+        screenFit.style.maxHeight = availableHeight + 'px';
       }
-
-      const used = (navbar ? navbar.offsetHeight : 0)
-                + (head ? head.offsetHeight : 0)
-                + headMargins;
-
-      // -1 px Puffer, damit sicher kein Scrollbalken erscheint
-      const h = Math.max(320, window.innerHeight - used - 1);
-      document.documentElement.style.setProperty('--screen-fit-h', h + 'px');
     }
 
     const params = new URLSearchParams(location.search);
 
     window.addEventListener('load', fit);
     window.addEventListener('resize', fit);
+    setTimeout(fit, 100); // Initial aus JS
   })();
 
   // Dashboard-Weiterleitung (wie auf deinen anderen Seiten)
@@ -53,8 +58,7 @@
     const nextPages = {
       "/landing":     "/anzeige?slideshow=1",
       "/anzeige":     "/schulungen?slideshow=1",
-      "/schulungen":  "/qualimatrix?slideshow=1",
-      "/qualimatrix": "/landing?slideshow=1"
+      "/schulungen": "/landing?slideshow=1"
     };
     const next = nextPages[path];
     if (next) setTimeout(() => { window.location.href = next; }, 60000);

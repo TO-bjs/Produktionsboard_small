@@ -135,11 +135,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  height: auto;
+  max-height: 60vh;
 }
 
 #announcement-content-wrapper {
   width: 100%;
   max-width: 600px;
+}
+
+/* Responsive Announcement-Höhe */
+@media (max-height: 700px) {
+  #announcement-card {
+    min-height: 250px;
+  }
+}
+
+@media (max-height: 600px) {
+  #announcement-card {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  #announcement-card {
+    min-height: 250px;
+    max-height: 50vh;
+  }
 }
 
 /* Dropdown-Menüs bei Hover öffnen */
@@ -166,6 +188,7 @@
   background-color: #0055aa;
 }
 
+/* FullCalendar Responsive */
 .fc {
   font-size: 0.85rem;
 }
@@ -180,15 +203,63 @@
   border-radius: 4px;
 }
 
+/* Mobile FullCalendar */
+@media (max-width: 768px) {
+  .fc {
+    font-size: 0.75rem;
+  }
+  .fc-toolbar-title {
+    font-size: 1rem;
+  }
+  .fc-col-header-cell {
+    padding: 4px 2px;
+  }
+  .fc-daygrid-day {
+    min-height: 60px;
+  }
+}
+
+@media (max-width: 576px) {
+  .fc {
+    font-size: 0.65rem;
+  }
+  .fc-toolbar-title {
+    font-size: 0.9rem;
+  }
+  .fc-daygrid-day {
+    min-height: 50px;
+  }
+  .fc-button-primary {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
 /* Vollbild-Frame ohne Überlauf */
 .screen-fit{
   width: 100%;                     /* statt 100vw -> kein 1-2px Überlauf */
   height: var(--screen-fit-h, 70vh);
-  display: grid;
-  place-items: center;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;                /* zur Sicherheit: kein Scrollen im Frame */
+  background: white;
 }
 
+/* Responsive Höhen */
+@media (max-height: 800px) {
+  .screen-fit {
+    min-height: 50vh;
+    height: var(--screen-fit-h, 50vh);
+  }
+}
+
+@media (max-height: 600px) {
+  .screen-fit {
+    min-height: 40vh;
+    height: var(--screen-fit-h, 40vh);
+  }
+}
 
 /* Bild füllt den Frame, aber ohne Verzerrung */
 .fit-image{
@@ -201,8 +272,249 @@
   display: block;
 }
 
+/* Responsive für kleine Bildschirme */
+@media (max-width: 768px) {
+  .screen-fit {
+    min-height: 45vh;
+  }
+}
+
+@media (max-width: 576px) {
+  .screen-fit {
+    min-height: 40vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .screen-fit {
+    min-height: 35vh;
+  }
+}
 /* Nur im Slideshow-Modus wirklich komplett ohne Scrollen */
-body.noscroll { overflow: hidden; }
+body.noscroll { 
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;  /* Dynamic viewport height (mobile) */
+}
 
 /* (Optional) harte Absicherung gegen horizontales Scrollen auf der Seite */
-html, body { overflow-x: hidden; }
+html {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body { 
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+/* ============= RESPONSIVE DESIGN ============= */
+
+/* Container responsive Höhe - ONLY für trainings */
+#trainings-container {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tablets: 768px und größer */
+@media (min-width: 768px) {
+  .navbar-brand {
+    font-size: 1.3rem;
+  }
+  .content-wrapper {
+    padding: 2rem;
+  }
+}
+
+/* Mobile: Unter 768px */
+@media (max-width: 767px) {
+  :root {
+    font-size: 14px;
+  }
+
+  .navbar-custom {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .navbar-brand img {
+    height: 32px;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+  }
+
+  .content-wrapper {
+    padding: 1rem 0.75rem;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  /* Tabelle responsive */
+  .table {
+    font-size: 0.85rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+  }
+
+  /* Forms responsive */
+  .row > [class*="col-"] {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Dropdown sollte nicht sofort aufklappen */
+  .navbar-nav .dropdown:hover .dropdown-menu {
+    display: none;
+  }
+
+  .navbar-nav .dropdown-menu {
+    min-width: 100%;
+  }
+}
+
+/* Klein-Tablets/Large Phones: 576px - 767px */
+@media (max-width: 576px) {
+  .navbar-collapse {
+    text-align: center;
+  }
+
+  .d-flex.gap-2 {
+    gap: 0.5rem !important;
+    flex-wrap: wrap;
+  }
+
+  .btn-group,
+  .btn-group-vertical {
+    width: 100%;
+  }
+
+  .btn-group > .btn {
+    flex: 1;
+  }
+
+  /* Qualimatrix Grid: Single Column auf Mobile */
+  .two-col-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* FullCalendar kleiner machen */
+  .fc {
+    font-size: 0.75rem;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1rem;
+  }
+
+  /* Announcements Card breiter */
+  #announcement-card {
+    width: 95vw !important;
+    max-width: 95vw;
+    min-height: 250px;
+  }
+
+  /* Bilder responsive */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Sehr kleine Screens: Unter 480px */
+@media (max-width: 480px) {
+  h1, h2 {
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
+
+  .container {
+    padding: 0.5rem;
+  }
+
+  /* Fullscreen Video background */
+  .fit-image {
+    max-height: 70vh;
+  }
+
+  #announcement-card {
+    height: auto;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .navbar,
+  .btn,
+  .sidebar-nav {
+    display: none;
+  }
+
+  .content-wrapper {
+    padding: 0;
+  }
+
+  body {
+    background: white;
+  }
+}
+
+/* Touch Device Optimierungen */
+@media (hover: none) and (pointer: coarse) {
+  a, button {
+    padding: 0.75rem;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+/* Dark Mode Support (optional) */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+  }
+
+  .card {
+    background-color: #222;
+    border-color: #444;
+  }
+
+  .table {
+    color: #f0f0f0;
+  }
+}

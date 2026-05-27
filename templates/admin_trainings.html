@@ -30,6 +30,11 @@
     </div>
 
     <div class="mb-3">
+      <label class="form-label">Ort (optional)</label>
+      <input type="text" name="location" class="form-control" placeholder="z. B. Schulungsraum A">
+    </div>
+
+    <div class="mb-3">
       <label class="form-label">Teilnehmer (optional)</label>
       <textarea name="participants" class="form-control" rows="2"></textarea>
     </div>
@@ -51,6 +56,7 @@
           <th>Datum</th>
           <th>Uhrzeit</th>
           <th>Titel</th>
+          <th>Ort</th>
           <th>Teilnehmer</th>
           <th class="text-end">Aktionen</th>
         </tr>
@@ -62,9 +68,11 @@
           <td>{{ t.date }}</td>
           <td>{{ t.time or '' }}</td>
           <td>{{ t.title }}</td>
+          <td class="small">{{ t.location or '' }}</td>
           <td class="small">{{ t.participants }}</td>
           <td class="text-end">
-            <form method="post" action="{{ url_for('admin_trainings_delete', tid=t.id) }}"
+            <a href="{{ url_for('admin_trainings_edit', tid=t.id) }}" class="btn btn-sm btn-outline-primary me-2">Bearbeiten</a>
+            <form method="post" action="{{ url_for('admin_trainings_delete', tid=t.id) }}" style="display:inline;"
                   onsubmit="return confirm('Schulung wirklich löschen?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm btn-danger">Löschen</button>

@@ -56,11 +56,7 @@
         {% endif %}
       </td>
       <td>
-        <form method="POST" class="d-inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="delete_id" value="{{ a.id }}">
-          <button type="submit" class="btn btn-danger btn-sm">🗑️ Löschen</button>
-        </form>
+        <a href="{{ url_for('manage_announcements', delete_id=a.id) }}" class="btn btn-danger btn-sm">🗑️ Löschen</a>
       </td>
     </tr>
     {% endfor %}

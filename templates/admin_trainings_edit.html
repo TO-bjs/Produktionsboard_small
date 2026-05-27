@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Schulung bearbeiten{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+  <h2 class="mb-4">✏️ Schulung bearbeiten</h2>
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">Titel*</label>
+      <input type="text" name="title" class="form-control" required value="{{ t.title }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Datum*</label>
+      <input type="date" name="date" class="form-control" required value="{{ t.date }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Uhrzeit</label>
+      <input type="time" name="time" class="form-control" value="{{ t.time or '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Ort (optional)</label>
+      <input type="text" name="location" class="form-control" value="{{ t.location or '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Teilnehmer (optional)</label>
+      <textarea name="participants" class="form-control" rows="2">{{ t.participants or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+    <a href="{{ url_for('admin_trainings') }}" class="btn btn-secondary ms-2">Abbrechen</a>
+  </form>
+</div>
+{% endblock %}

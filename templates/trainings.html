@@ -3,16 +3,16 @@
 {% block title %}Schulungskalender{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="mb-4">📅 Schulungen</h2>
+<div class="container-fluid d-flex flex-column" style="padding: 0.5rem; gap: 0.5rem;" id="trainings-container">
+  <h2 class="mb-0" style="font-size: 1.5rem;">📅 Schulungen</h2>
 
-  <h4>🔔 In den nächsten 30 Tagen:</h4>
-    <ul class="list-group mb-4" id="upcoming-list">
+  <h4 class="mb-0" style="font-size: 1rem;">🔔 Nächste 30 Tage:</h4>
+  <ul class="list-group mb-0" id="upcoming-list" style="max-height: 120px; overflow-y: auto; font-size: 0.9rem;">
     <li class="list-group-item">Lade Daten...</li>
-    </ul>
+  </ul>
 
-  <h4 class="mt-5 mb-3">🗓 Kalenderansicht</h4>
-  <div id="calendar" class="border rounded shadow-sm p-3 bg-white"></div>
+  <h4 class="mb-0" style="font-size: 1rem;">🗓 Kalenderansicht</h4>
+  <div id="calendar" class="border rounded shadow-sm p-2 bg-white" style="min-height: 300px;"></div>
 </div>
 {% endblock %}
 {% block scripts %}
@@ -21,19 +21,35 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
+    const container = document.getElementById('trainings-container');
+
+    // Höhe des Containers anpassen: Navbar + Header + Abstände = verfügbar
+    function adjustContainerHeight() {
+      const navbar = document.querySelector('.navbar');
+      const navHeight = navbar ? navbar.offsetHeight : 60;
+      const maxHeight = window.innerHeight - navHeight - 20;
+      container.style.maxHeight = maxHeight + 'px';
+      container.style.height = maxHeight + 'px';
+      container.style.overflow = 'hidden';
+    }
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       locale: 'de',
-      height: 550,
+      height: 'auto',
+      contentHeight: 'auto',
       events: '/api/trainings',
       eventClick: function(info) {
         const title = info.event.title || '';
         const participants = (info.event.extendedProps && info.event.extendedProps.participants) || '';
+        const location = (info.event.extendedProps && info.event.extendedProps.location) || '';
         let message = title;
+        if (location.trim()) {
+          message += '\n\nOrt: ' + location;
+        }
         if (participants.trim()) {
-          const list = participants.split(',').map(p => p.trim()).filter(Boolean).join('\n• ');
-          message += '\n\nTeilnehmer:\n• ' + list;
+          const list = participants.split(',').map(p => p.trim()).filter(Boolean).join('\n ');
+          message += '\n\nTeilnehmer:\n ' + list;
         } else {
           message += '\n\nKeine Teilnehmer eingetragen.';
         }
@@ -42,6 +58,16 @@
     });
 
     calendar.render();
+
+    // Initial und bei Resize anpassen
+    adjustContainerHeight();
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(adjustContainerHeight, 100);
+    });
+
+    // Kein dynamisches Höhen-Setzen, damit der Rahmen nicht größer als der Kalender ist.
 
     setInterval(() => calendar.refetchEvents(), 30000);
 
@@ -62,8 +88,7 @@
     const nextPages = {
       "/landing": "/anzeige?slideshow=1",
       "/anzeige": "/schulungen?slideshow=1",
-      "/schulungen": "/qualimatrix?slideshow=1",
-      "/qualimatrix": "/landing?slideshow=1"
+      "/schulungen": "/landing?slideshow=1"
     };
 
     const path = window.location.pathname;
