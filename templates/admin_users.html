@@ -49,19 +49,27 @@
         <tbody>
           {% for user in users %}
           <tr>
-            <td>{{ user.username }}</td>
-            <td><input type="email" class="form-control" name="email" value="{{ user.email }}"></td>
-            <td>
-              <select class="form-select" name="is_admin">
-                <option value="1" {% if user.is_admin %}selected{% endif %}>Ja</option>
-                <option value="0" {% if not user.is_admin %}selected{% endif %}>Nein</option>
-              </select>
-            </td>
-            <td><input type="password" class="form-control" placeholder="Neues Passwort" name="new_password"></td>
-            <td>
-              <button class="btn btn-sm btn-primary">💾 Speichern</button>
-              <button class="btn btn-sm btn-danger">🗑 Löschen</button>
-            </td>
+            <form method="post" action="{{ url_for('admin.update_user') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <td>{{ user.username }}</td>
+              <td><input type="email" class="form-control" name="email" value="{{ user.email }}"></td>
+              <td>
+                <select class="form-select" name="is_admin">
+                  <option value="1" {% if user.is_admin %}selected{% endif %}>Ja</option>
+                  <option value="0" {% if not user.is_admin %}selected{% endif %}>Nein</option>
+                </select>
+              </td>
+              <td><input type="password" class="form-control" placeholder="Neues Passwort" name="new_password"></td>
+              <td class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary">💾 Speichern</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.admin_users') }}" onsubmit="return confirm('Benutzer wirklich löschen?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="delete" value="{{ user.id }}">
+              <button type="submit" class="btn btn-sm btn-danger">🗑 Löschen</button>
+            </form>
+              </td>
           </tr>
           {% endfor %}
         </tbody>
