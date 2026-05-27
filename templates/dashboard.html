@@ -9,15 +9,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/slideshow.js"></script>
 <script>
-  const dashboardPages = [
-    "/landing?slideshow=1",
-    "/anzeige?slideshow=1",
-    "/schulungen?slideshow=1",
-  ];
-
-  let currentIndex = 0;
-
   // Starte Vollbildmodus, wenn erlaubt
   function enterFullscreen() {
     const el = document.documentElement;
@@ -27,11 +20,11 @@
     else if (el.msRequestFullscreen) el.msRequestFullscreen();
   }
 
-  // Initial: Vollbild + Start Slideshow
+  // Initial: Vollbild + Start Slideshow auf definierter Startseite
   document.addEventListener("DOMContentLoaded", function () {
     enterFullscreen();
     setTimeout(() => {
-      window.location.href = dashboardPages[currentIndex];
+      window.location.href = SlideshowFlow.getStartUrl();
     }, 1000);
   });
 </script>
