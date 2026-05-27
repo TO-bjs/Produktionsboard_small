@@ -66,6 +66,16 @@ def init_db():
                             time TEXT,
                             participants TEXT,
                             status TEXT DEFAULT 'geplant')''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS announcements (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            title TEXT NOT NULL,
+                            content TEXT NOT NULL,
+                            source TEXT,
+                            attachment_path TEXT,
+                            expires_at DATETIME,
+                            created_by INTEGER,
+                            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY(created_by) REFERENCES users(id))''')
 init_db()
 
 def get_db_connection():
