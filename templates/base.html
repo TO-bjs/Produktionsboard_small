@@ -72,9 +72,9 @@
             📦 Produktion
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ url_for('anzeigen') }}">📊 Feinterminierung</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('schulungen') }}">📅 Schulungskalender</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('qualimatrix') }}">🧪 Qualimatrix</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('public.anzeigen') }}">📊 Feinterminierung</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('public.schulungen') }}">📅 Schulungskalender</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('public.qualimatrix') }}">🧪 Qualimatrix</a></li>
           </ul>
         </li>
 
@@ -85,11 +85,11 @@
             🔧 Admin
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">👤 Benutzerverwaltung</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('manage_announcements') }}">📢 Ankündigungen</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('admin_trainings') }}">📚 Schulungen</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('upload') }}">⬆️ Upload Feinterminierung</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('upload_qualimatrix') }}">⬆️ Upload Qualimatrix</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.admin_users') }}">👤 Benutzerverwaltung</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.manage_announcements') }}">📢 Ankündigungen</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.admin_trainings') }}">📚 Schulungen</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('public.upload') }}">⬆️ Upload Feinterminierung</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin.upload_qualimatrix') }}">⬆️ Upload Qualimatrix</a></li>
           </ul>
         </li>
         {% endif %}
@@ -101,9 +101,9 @@
           <div class="text-end me-3 text-white" style="white-space: nowrap;">
             Willkommen,<br><strong>{{ session.username }}</strong>
           </div>
-          <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
         {% else %}
-          <a href="{{ url_for('login') }}" class="btn btn-success">Login</a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-success">Login</a>
         {% endif %}
       </div>
     </div>
