@@ -72,9 +72,61 @@
     setInterval(() => calendar.refetchEvents(), 30000);
 
     function reloadUpcomingList() {
+      const upcomingListEl = document.getElementById('upcoming-list');
       fetch('/api/trainings/upcoming')
-        .then(response => response.text())
-        .then(html => { document.getElementById('upcoming-list').innerHTML = html; });
+        .then(response => response.json())
+        .then(items => {
+          upcomingListEl.textContent = '';
+          if (!Array.isArray(items) || items.length === 0) {
+            const emptyItem = document.createElement('li');
+            emptyItem.className = 'list-group-item';
+            emptyItem.textContent = 'Keine Schulungen in den nächsten 30 Tagen.';
+            upcomingListEl.appendChild(emptyItem);
+            return;
+          }
+
+          items.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+
+            const headLine = document.createElement('div');
+            const strongDate = document.createElement('strong');
+            strongDate.textContent = item.date || '';
+            headLine.appendChild(strongDate);
+            headLine.appendChild(document.createTextNode(' – ' + (item.title || '')));
+            if (item.time) {
+              headLine.appendChild(document.createTextNode(', ' + item.time));
+            }
+            listItem.appendChild(headLine);
+
+            if (Array.isArray(item.participants) && item.participants.length > 0) {
+              const participantsWrap = document.createElement('div');
+              participantsWrap.className = 'mt-1';
+              const label = document.createElement('em');
+              label.textContent = 'Teilnehmer:';
+              participantsWrap.appendChild(label);
+
+              const participantsUl = document.createElement('ul');
+              participantsUl.className = 'mb-0';
+              item.participants.forEach(participant => {
+                const participantLi = document.createElement('li');
+                participantLi.textContent = participant;
+                participantsUl.appendChild(participantLi);
+              });
+              participantsWrap.appendChild(participantsUl);
+              listItem.appendChild(participantsWrap);
+            }
+
+            upcomingListEl.appendChild(listItem);
+          });
+        })
+        .catch(() => {
+          upcomingListEl.textContent = '';
+          const errorItem = document.createElement('li');
+          errorItem.className = 'list-group-item';
+          errorItem.textContent = 'Fehler beim Laden der Schulungen.';
+          upcomingListEl.appendChild(errorItem);
+        });
     }
     reloadUpcomingList();
     setInterval(reloadUpcomingList, 30000);
@@ -104,4 +156,3 @@
 
 
 {% endblock %}
-
