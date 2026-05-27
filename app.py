@@ -358,15 +358,21 @@ def manage_announcements():
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (title, content, source, attachment_path, expires_at, session.get('user_id')))
         conn.commit()
-
-    if 'delete_id' in request.args:
-        conn.execute('DELETE FROM announcements WHERE id = ?', (request.args['delete_id'],))
-        conn.commit()
-        return redirect(url_for('manage_announcements'))
-
     announcements = conn.execute('SELECT * FROM announcements ORDER BY created_at DESC').fetchall()
     conn.close()
     return render_template('manage_announcements.html', announcements=announcements)
+
+
+@app.route('/admin/ankuendigung/<int:id>/delete', methods=['POST'])
+def delete_announcement(id):
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM announcements WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('manage_announcements'))
 
 @app.route('/api/announcements')
 def api_announcements():
