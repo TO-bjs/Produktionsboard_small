@@ -13,6 +13,7 @@
 <body>
 <h2>Neues Passwort festlegen</h2>
 <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 <label>Neues Passwort:</label><br/>
 <input name="new_password" required="" type="password"/><br/><br/>
 <input type="submit" value="Passwort speichern"/>
