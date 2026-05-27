@@ -1,6 +1,8 @@
+import logging
 import smtplib
-import traceback
 from email.message import EmailMessage
+
+logger = logging.getLogger(__name__)
 
 
 def send_email(subject, body, to_email):
@@ -15,7 +17,6 @@ def send_email(subject, body, to_email):
             smtp.login('it@to-labsystems.de', 'Labsys-InfoTech25/')
             smtp.send_message(msg)
 
-        print('✅ E-Mail erfolgreich gesendet an', to_email)
+        logger.info('E-Mail erfolgreich gesendet an %s', to_email)
     except Exception:
-        print('❌ Fehler beim Senden der E-Mail:')
-        traceback.print_exc()
+        logger.exception('Fehler beim Senden der E-Mail an %s', to_email)
