@@ -2,6 +2,7 @@ import os
 import sqlite3
 import secrets
 import smtplib
+import uuid
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, jsonify
@@ -340,9 +341,17 @@ def manage_announcements():
         attachment_path = None
 
         if file and file.filename:
-            save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            safe_filename = secure_filename(file.filename)
+            if not safe_filename or not allowed_file(safe_filename):
+                flash("Ungültige Datei. Bitte nur erlaubte Dateitypen hochladen.")
+                conn.close()
+                return redirect(url_for('manage_announcements'))
+
+            file_ext = os.path.splitext(safe_filename)[1].lower()
+            final_filename = f"{uuid.uuid4().hex}{file_ext}"
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
             file.save(save_path)
-            attachment_path = file.filename
+            attachment_path = final_filename
 
         conn.execute('''
             INSERT INTO announcements (title, content, source, attachment_path, expires_at, created_by)
